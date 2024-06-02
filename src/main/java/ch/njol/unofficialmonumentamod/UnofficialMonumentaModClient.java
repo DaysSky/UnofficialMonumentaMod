@@ -4,6 +4,7 @@ import ch.njol.minecraft.config.Config;
 import ch.njol.minecraft.uiframework.hud.Hud;
 import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.core.commands.MainCommand;
+import ch.njol.unofficialmonumentamod.core.commands.TexSpoofingInGameCommand;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import ch.njol.unofficialmonumentamod.core.shard.ShardDebugCommand;
 import ch.njol.unofficialmonumentamod.core.shard.ShardLoader;
@@ -161,6 +162,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> {
 					dispatcher.register(new ShardDebugCommand().register());
 					dispatcher.register(new MainCommand().register());
+					dispatcher.register(new TexSpoofingInGameCommand().register(registryAccess));
 		}));
 
 		try {

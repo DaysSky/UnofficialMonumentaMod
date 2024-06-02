@@ -12,7 +12,6 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
-import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
@@ -110,18 +109,14 @@ public class MainCommand extends Constants {
     }
 
     private static String getSelfInfoString() {
-        StringBuilder data = new StringBuilder();
-        data.append("[Mod Info]");
-
-        Version version = UnofficialMonumentaModClient.ModInfo.version;
         String name = UnofficialMonumentaModClient.ModInfo.name;
-        data.append("\nName: ").append(name);
-        data.append("\nVersion: ").append(UnofficialMonumentaModClient.ModInfo.getVersion());
-        data.append("\nFile name: ").append(UnofficialMonumentaModClient.ModInfo.fileName);
-
-        data.append("\nMinecraft: ") .append(MinecraftClient.getInstance().getGameVersion()).append("-").append(SharedConstants.getGameVersion().getName());
-        data.append("\nIn Development environment: ").append(FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No");
-        return data.append("\n").toString();
+        return "[Mod Info]" +
+                "\nName: " + name +
+                "\nVersion: " + UnofficialMonumentaModClient.ModInfo.getVersion() +
+                "\nFile name: " + UnofficialMonumentaModClient.ModInfo.fileName +
+                "\nMinecraft: " + MinecraftClient.getInstance().getGameVersion() + "-" + SharedConstants.getGameVersion().getName() +
+                "\nIn Development environment: " + (FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No") +
+                "\n";
     }
 
     private static String getModListString() {
