@@ -3,8 +3,8 @@ package ch.njol.unofficialmonumentamod.mixins;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.features.misc.managers.MessageNotifier;
-import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
+import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.text.Text;
@@ -39,7 +39,7 @@ public class InGameHudMixin {
 	}
 
 	@Inject(method = "render",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/scoreboard/Scoreboard;getObjectiveForSlot(I)Lnet/minecraft/scoreboard/ScoreboardObjective;", shift = At.Shift.BEFORE),
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/scoreboard/Scoreboard;getObjectiveForSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;)Lnet/minecraft/scoreboard/ScoreboardObjective;", shift = At.Shift.BEFORE),
 		slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/DrawContext;III)V")))
 	void renderSkills_afterChat(DrawContext drawContext, float tickDelta, CallbackInfo ci) {
 		if (abilitiesHud.renderInFrontOfChat()) {
