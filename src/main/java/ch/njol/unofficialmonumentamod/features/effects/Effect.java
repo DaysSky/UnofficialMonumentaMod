@@ -129,7 +129,9 @@ public class Effect {
 	public Text toText(float tickDelta, boolean rightAligned) {
 		Text timeText = MutableText.of(new LiteralTextContent((rightAligned ? " " : "") + getTimeRemainingAsString(tickDelta) + (rightAligned ? "" : " ")));
 		Style effectStyle = Style.EMPTY.withColor((isPositive() == (effectTime >= 0)) ? Formatting.GREEN : Formatting.RED);
-		String effectString = (isPositive() == (effectTime >= 0) ? "+" : "-") + (effectPower != 0 ? POWER_FORMAT.format(effectPower) + (isPercentage ? "%" : "") + " " : "") + name;
+
+		String effectStringPrefix = effectPower != 0 ? (isPositive() == (effectPower > 0) ? "+" : "-") : "";
+		String effectString = effectStringPrefix + (effectPower != 0 ? POWER_FORMAT.format(effectPower) + (isPercentage ? "%" : "") + " " : "") + name;
 		Text effectText = MutableText.of(new LiteralTextContent(effectString)).setStyle(effectStyle);
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 		int maxEffectWidth = UnofficialMonumentaModClient.options.effect_width - textRenderer.getWidth(timeText);
