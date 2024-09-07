@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version '0.12-SNAPSHOT'
+    id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
     id "com.modrinth.minotaur" version "2.+"
     id "com.matthewprenger.cursegradle" version "1.+"
@@ -10,15 +10,16 @@ plugins {
 sourceCompatibility = JavaVersion.VERSION_17
 targetCompatibility = JavaVersion.VERSION_17
 
-
-if (project.hasProperty("mod_extradata")) {
-    archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version + "-" + project.mod_extradata;
-} else {
-    archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version
-}
-
 version = project.mod_version
 group = project.maven_group
+
+base {
+    if (project.hasProperty("mod_extradata")) {
+        archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version + "-" + project.mod_extradata;
+    } else {
+        archivesBaseName = project.archives_base_name + "-mc" + project.minecraft_version
+    }
+}
 
 dependencies {
     //to change the versions see the gradle.properties file
@@ -77,16 +78,14 @@ tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
 }
 
-// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-// if it is present.
-// If you remove this task, sources will not be generated.
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = "sources"
-    from sourceSets.main.allSource
+java {
+    withSourcesJar()
 }
 
 jar {
-    from "LICENSE"
+    from("LICENSE") {
+        rename { "${it}_${project.archives_base_name}"}
+    }
 }
 //shadowJar {
 //    dependencies {

@@ -8,7 +8,6 @@ import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
@@ -20,11 +19,12 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
 
 public class ChestCountOverlay extends HudElement {
 	//TODO generalize this class to be able to create one for any actionbar based counter / maybe other sources?
 
-	public static final Pattern ACTIONBAR_PATTERN = Pattern.compile("(?<total>[0-9]{1,3}) total chests added to lootroom\\. \\(\\+(?<added>[0-9])\\)", Pattern.CASE_INSENSITIVE);
+	public static final Pattern ACTIONBAR_PATTERN = Pattern.compile("(?<total>[0-9]{1,3}) total chests? added to lootroom\\. \\(\\+(?<added>[0-9])\\)", Pattern.CASE_INSENSITIVE);
 
 	public static final ChestCountOverlay INSTANCE = new ChestCountOverlay();
 
