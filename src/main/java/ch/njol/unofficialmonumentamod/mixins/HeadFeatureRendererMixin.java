@@ -42,7 +42,7 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 	 * If a skull block has an "on_head" model, do not render it as usual and instead render that model
 	 */
 	@Inject(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V",
-		at = @At("HEAD"), cancellable = true)
+			at = @At("HEAD"), cancellable = true)
 	public void render(MatrixStack matrices, VertexConsumerProvider vertexConsumers, int i, T livingEntity, float f, float g, float h, float j, float k, float l, CallbackInfo ci) {
 		ItemStack itemStack = livingEntity.getEquippedStack(EquipmentSlot.HEAD);
 		ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(itemStack);
@@ -54,8 +54,8 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 		}
 
 		if (livingEntity instanceof VillagerEntity
-			    && !livingEntity.isInvisible()
-			    && UnofficialMonumentaModClient.options.hideVillagerPlayerHeads) {
+				&& !livingEntity.isInvisible()
+				&& UnofficialMonumentaModClient.options.hideVillagerPlayerHeads) {
 			ci.cancel();
 			return;
 		}
@@ -84,17 +84,17 @@ public abstract class HeadFeatureRendererMixin<T extends LivingEntity, M extends
 			matrices.translate(0.0D, 0.1875D, 0.0D);
 		}
 		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformationMode.HEAD,
-			false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
+				false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
 		matrices.pop();
 	}
 
 	@Redirect(method = "render(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;ILnet/minecraft/entity/LivingEntity;FFFFFF)V",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(DDD)V"))
+			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/util/math/MatrixStack;translate(DDD)V"))
 	public void render_MatrixStack_translate(MatrixStack instance, double x, double y, double z) {
 		if (UnofficialMonumentaModClient.options.lowerVillagerHelmets
-			    && x == 0
-			    && y == 0.0625D
-			    && z == 0) {
+				&& x == 0
+				&& y == 0.0625D
+				&& z == 0) {
 			return; // don't translate
 		}
 		instance.translate(x, y, z);

@@ -4,14 +4,14 @@ import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
-import java.util.Map;
-import java.util.Objects;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+
+import java.util.Map;
+import java.util.Objects;
 
 public class DelveBounty {
     private static final String NPCNamePattern = "\\[\\w*] ";
@@ -40,7 +40,7 @@ public class DelveBounty {
             return;//if the giver is not an NPC, ignore.
         }
 
-        for (Map.Entry<String, ShardData.Shard> entry: ShardData.getShards().entrySet()) {
+        for (Map.Entry<String, ShardData.Shard> entry : ShardData.getShards().entrySet()) {
             if (!entry.getValue().canBeDelveBounty) {
                 continue;//If the shard does not have an associated bounty, skip.
             }
@@ -53,7 +53,7 @@ public class DelveBounty {
 
                 MutableText text = Text.translatable("unofficial-monumenta-mod.delvebounty.newBountyMessage")
                         .setStyle(Style.EMPTY.withColor(Formatting.GOLD))
-                        .append(MutableText.of(new LiteralTextContent(entry.getValue().officialName)).setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                        .append(Text.literal(entry.getValue().officialName).setStyle(Style.EMPTY.withColor(Formatting.RED)));
                 MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);
                 break;
             }
