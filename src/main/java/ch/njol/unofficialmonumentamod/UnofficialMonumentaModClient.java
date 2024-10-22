@@ -3,6 +3,7 @@ package ch.njol.unofficialmonumentamod;
 import ch.njol.minecraft.config.Config;
 import ch.njol.minecraft.uiframework.hud.Hud;
 import ch.njol.unofficialmonumentamod.core.PersistentData;
+import ch.njol.unofficialmonumentamod.core.commands.CommandHelpBuilder;
 import ch.njol.unofficialmonumentamod.core.commands.MainCommand;
 import ch.njol.unofficialmonumentamod.core.commands.TexSpoofingInGameCommand;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
@@ -22,8 +23,11 @@ import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
 import ch.njol.unofficialmonumentamod.options.ConfigMenu;
 import ch.njol.unofficialmonumentamod.options.Options;
 import com.google.gson.JsonParseException;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Timer;
@@ -32,6 +36,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -44,10 +49,13 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.system.Platform;
 
@@ -159,10 +167,18 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			}
 		});
 
+
+
 		ClientCommandRegistrationCallback.EVENT.register(((dispatcher, registryAccess) -> {
-					dispatcher.register(new ShardDebugCommand().register());
-					dispatcher.register(new MainCommand().register());
-					dispatcher.register(new TexSpoofingInGameCommand().register(registryAccess));
+			List<LiteralArgumentBuilder<FabricClientCommandSource>> commands = new ArrayList<>();
+			commands.add(new ShardDebugCommand().register());
+			commands.add(new MainCommand().register());
+			commands.add(new TexSpoofingInGameCommand().register(registryAccess));
+
+			CommandHelpBuilder.initialize(commands);
+			for (LiteralArgumentBuilder<FabricClientCommandSource> command : commands) {
+				dispatcher.register(command);
+			}
 		}));
 
 		try {
@@ -174,6 +190,20 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		}
 
 		ModInfo.initialize();
+	}
+
+	public static void debug(String message) {
+		if (!options.debugOptionsEnabled) {
+			return;
+		}
+		if (options.notifyDebugMessages) {
+			MutableText text = Text.literal(message);
+			text.setStyle(Style.EMPTY.withColor(Formatting.YELLOW));
+			MessageNotifier.RenderedMessage renderedMessage = new MessageNotifier.RenderedMessage(text);
+			MessageNotifier.getInstance().addMessageToQueue(renderedMessage);
+		}
+
+		UnofficialMonumentaModClient.LOGGER.info(message);
 	}
 
 	public static void onDisconnect() {
@@ -226,13 +256,9 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 	}
 
 	public static class ModInfo {
-		@MonotonicNonNull
 		public static Version version;
-		@MonotonicNonNull
 		public static String name;
-		@MonotonicNonNull
 		public static String fileName;
-		@MonotonicNonNull
 		public static String extraData;
 
 		public static boolean inDevEnvironment;

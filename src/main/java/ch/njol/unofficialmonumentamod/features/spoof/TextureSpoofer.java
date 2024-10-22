@@ -7,7 +7,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import com.mojang.brigadier.suggestion.Suggestions;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -244,7 +243,7 @@ public class TextureSpoofer {
 		return false;
 	}
 
-	public static boolean wouldveBeenEdited(ItemStack stack) {
+	public static boolean shouldEdit(ItemStack stack) {
 		String key = getKeyOf(stack);
 		return UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(key) &&
 				!UnofficialMonumentaModClient.spoofer.spoofedItems.get(key).invalid;
@@ -331,6 +330,11 @@ public class TextureSpoofer {
 		SpoofItem spoofedItem = getSpoofItemFromName(key);
 		if (spoofedItem == null) {
 			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+
+		if (appliedUuid == null) {
+			spoofedItem.hope = null;
+			return;
 		}
 		spoofedItem.hope = appliedUuid.toString();
 	}

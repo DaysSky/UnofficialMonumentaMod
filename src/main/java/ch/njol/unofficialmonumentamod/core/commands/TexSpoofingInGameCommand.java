@@ -7,13 +7,13 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import java.util.Locale;
+import java.util.UUID;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
 import net.minecraft.command.argument.ItemStackArgumentType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -45,6 +45,7 @@ public class TexSpoofingInGameCommand extends Constants {
                                 ClientCommandManager.argument("name", StringArgumentType.string())
                                         .suggests(UnofficialMonumentaModClient.spoofer.spoofedItemsKeyProvider())
                                         .executes(TexSpoofingInGameCommand::runRemove)
+                                        .then(ClientCommandManager.literal("hope").executes(TexSpoofingInGameCommand::runRemoveHope))
                         )
         );
         builder.then(
@@ -71,6 +72,13 @@ public class TexSpoofingInGameCommand extends Constants {
                                                                 .then(
                                                                         ClientCommandManager.argument("item", ItemStackArgumentType.itemStack(access))
                                                                                 .executes(TexSpoofingInGameCommand::runEditItem)
+                                                                )
+                                                )
+                                                .then(
+                                                        ClientCommandManager.literal("hope")
+                                                                .then(
+                                                                        ClientCommandManager.argument("uuid", UuidArgumentType.uuid())
+                                                                                .executes(TexSpoofingInGameCommand::runEditHope)
                                                                 )
                                                 )
                                 )
@@ -178,6 +186,42 @@ public class TexSpoofingInGameCommand extends Constants {
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editItem(finalItemName, replacementStack.getItem()))
                 .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed item replacement on \"" + finalItemName + "\" to \"" + replacementStack.getItem().getName() + "\"")).fillStyle(MAIN_INFO_STYLE)));
+        return 0;
+    }
+
+    private static int runEditHope(CommandContext<FabricClientCommandSource> ctx) {
+        String itemName = ctx.getArgument("name", String.class);
+        itemName = cleanName(itemName);
+
+        @Nullable TextureSpoofer.SpoofItem item = UnofficialMonumentaModClient.spoofer.getSpoofItemFromName(itemName);
+        if (item == null) {
+            //There is not a spoofed item for this item, send error message and exit.
+            ctx.getSource().sendError(Text.of("This item is not spoofed."));
+            return 1;
+        }
+
+        UUID uuid = ctx.getArgument("uuid", UUID.class);
+
+        String finalItemName = itemName;
+        UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editAppliedHope(finalItemName, uuid))
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed item hope replacement on \"" + finalItemName + "\" to \"" + uuid.toString() + "\"")).fillStyle(MAIN_INFO_STYLE)));
+        return 0;
+    }
+
+    private static int runRemoveHope(CommandContext<FabricClientCommandSource> ctx) {
+        String itemName = ctx.getArgument("name", String.class);
+        itemName = cleanName(itemName);
+
+        @Nullable TextureSpoofer.SpoofItem item = UnofficialMonumentaModClient.spoofer.getSpoofItemFromName(itemName);
+        if (item == null) {
+            //There is not a spoofed item for this item, send error message and exit.
+            ctx.getSource().sendError(Text.of("This item is not spoofed."));
+            return 1;
+        }
+
+        String finalItemName = itemName;
+        UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editAppliedHope(finalItemName, null))
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully removed hope replacement on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 }

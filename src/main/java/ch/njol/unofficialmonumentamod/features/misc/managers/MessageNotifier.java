@@ -9,6 +9,8 @@ import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
 public class MessageNotifier extends HudElement {
@@ -129,7 +131,7 @@ public class MessageNotifier extends HudElement {
 
     public static class RenderedMessage {
         public long firstRenderMillis = -1;
-        public final Text message;
+        public final List<Text> message;
 
         public boolean isInitialized() {
             return firstRenderMillis != -1;
@@ -140,13 +142,38 @@ public class MessageNotifier extends HudElement {
         public final float scaleFactor;
 
         public RenderedMessage(Text message) {
-            this.message = message;
+            this.message = truncateTextToWidth(message, MessageNotifier.getInstance().getBaseScaleFactor());
             this.scaleFactor = 1.0F;
         }
 
         public RenderedMessage(Text message, float scaleFactor) {
-            this.message = message;
+            this.message = truncateTextToWidth(message, scaleFactor * MessageNotifier.getInstance().getBaseScaleFactor());
             this.scaleFactor = scaleFactor;
+        }
+
+        private static List<Text> truncateTextToWidth(Text originalMessage, float scaleFactor) {
+            int width = MessageNotifier.getInstance().getDimension().width;
+            if ((client.textRenderer.getWidth(originalMessage) * scaleFactor) > width) {
+                List<Text> lines = new ArrayList<>();
+                StringBuilder newMessage = new StringBuilder();
+                String messageContent = originalMessage.getString();
+                for (int i = 0; i < messageContent.length(); i++) {
+                    if ((client.textRenderer.getWidth(newMessage.toString()) * scaleFactor) >= width) {
+                        lines.add(MutableText.of(new LiteralTextContent(newMessage.substring(0, newMessage.length() - 1).trim() + "⁻"))
+                                .fillStyle(originalMessage.getStyle()));
+                        newMessage.delete(0, newMessage.length() - 1);
+                    }
+                    newMessage.append(messageContent.charAt(i));
+                }
+
+                if (!newMessage.isEmpty()) {
+                    lines.add(MutableText.of(new LiteralTextContent(newMessage.toString().trim()))
+                            .fillStyle(originalMessage.getStyle()));
+                }
+
+                return lines;
+            }
+            return List.of(originalMessage);
         }
 
         public float getScaleFactor() {
@@ -154,11 +181,29 @@ public class MessageNotifier extends HudElement {
         }
 
         public double getWidth() {
-            return client.textRenderer.getWidth(message) * getScaleFactor();
+            return client.textRenderer.getWidth(getLongestLine()) * getScaleFactor();
         }
 
         public double getHeight() {
-            return client.textRenderer.fontHeight * getScaleFactor();
+            return client.textRenderer.fontHeight * getScaleFactor() * message.size();
+        }
+
+        private Text getLongestLine() {
+            Text longestLine = null;
+            double longestLineWidth = 0;
+            for (Text text : message) {
+                if (longestLine == null) {
+                    longestLine = text;
+                    longestLineWidth = client.textRenderer.getWidth(longestLine);
+                    continue;
+                }
+                if (client.textRenderer.getWidth(text) > longestLineWidth) {
+                    longestLine = text;
+                    longestLineWidth = client.textRenderer.getWidth(text);
+                }
+            }
+
+            return longestLine;
         }
 
         public void draw(MatrixStack matrices, float tickDelta) {
@@ -170,7 +215,7 @@ public class MessageNotifier extends HudElement {
             final int animTime = getInstance().getAnimTime();
 
             Rectangle parentDim = getInstance().getDimension();
-            //x=0 is position when set, x=width is position at the start/at the end (e.g animation start/end position)
+            //x=0 is position when set, x=width is position at the start/at the end (e.g. animation start/end position)
 
             //base animation duration is 3s -> 3000ms
             double currentXPosition = 0;
@@ -178,26 +223,32 @@ public class MessageNotifier extends HudElement {
             if (firstRenderMillis + animTime > System.currentTimeMillis()) {
                 //start animation
                 long millisSinceAppearance = System.currentTimeMillis() - firstRenderMillis;
-                float percent = ((float) millisSinceAppearance / animTime);
+                float percent = ((float) millisSinceAppearance * tickDelta / animTime);
                 currentXPosition = (parentDim.getWidth() / 2 * (1F - percent));
             }
 
             if ((firstRenderMillis + remTime) - System.currentTimeMillis() < animTime) {
                 long millisTillRemoval = (firstRenderMillis + remTime) - System.currentTimeMillis();
 
-                float percent = ((float) millisTillRemoval / animTime);
+                float percent = ((float) millisTillRemoval * tickDelta / animTime);
                 currentXPosition = -(parentDim.getWidth() / 2 * (1F - percent));
             }
 
             if (willBeDismissed() && (dismissalTime + animTime > System.currentTimeMillis())) {
                 long millisTillDismissal = (dismissalTime + animTime) - System.currentTimeMillis();
 
-                float percent = ((float) millisTillDismissal / animTime);
+                float percent = ((float) millisTillDismissal * tickDelta / animTime);
                 currentXPosition = -(parentDim.getWidth() / 2 * (1F - percent));
 
             }
 
-            client.textRenderer.draw(matrices, message, (int) Math.floor(currentXPosition) / getScaleFactor(), (int) Math.floor(-getHeight() / 2), 0xFFFFFF);
+            int baseX = (int) (Math.floor(currentXPosition) / getScaleFactor());
+            int baseY = (int) (Math.floor(-getHeight() / 2) - ((client.textRenderer.fontHeight * getScaleFactor()) / 2));
+
+            for (Text text : message) {
+                client.textRenderer.draw(matrices, text, baseX, baseY, 0xFFFFFF);
+                baseY += (int) (client.textRenderer.fontHeight);
+            }
         }
 
         public void setAsDismissed()

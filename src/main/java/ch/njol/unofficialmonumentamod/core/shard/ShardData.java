@@ -12,16 +12,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.resource.Resource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ShardData {//TODO clean up this class
 	public static final String UNKNOWN_SHARD = "unknown";
@@ -33,8 +31,6 @@ public class ShardData {//TODO clean up this class
 
 	protected static boolean editedShard = false;
 	public static boolean loadedAtLeastOnce = false;
-
-	private static boolean pebWorldSpoofingEnabled = false;
 
 	public static boolean isEditedShard() {
 		return editedShard;

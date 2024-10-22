@@ -159,6 +159,9 @@
   "unofficial-monumenta-mod.config.option.logEffectPackets": "Log Effect packets",
   "unofficial-monumenta-mod.config.option.logEffectPackets.tooltip": "Show more informations on received effect packets",
 
+  "unofficial-monumenta-mod.config.subcategory.info": "Debug informations",
+  "unofficial-monumenta-mod.config.option.notifyDebugMessages": "Use the notification system to show debug messages on screen.",
+
   "unofficial-monumenta-mod.config.category.discord": "Discord Rich Presence",
   "unofficial-monumenta-mod.config.option.discordEnabled": "Enable discord rich presence",
   "unofficial-monumenta-mod.config.option.discordEnabled.tooltip": "Defines if the rich presence should be active or not",
@@ -186,6 +189,8 @@
   "unofficial-monumenta-mod.config.option.chestCount_position.tooltip": "Can be moved with the mouse like the abilities display",
   "unofficial-monumenta-mod.config.option.chestCount_enabled": "Enable overlay",
   "unofficial-monumenta-mod.config.option.chestCount_enabled.tooltip": "Whether the overlay should render or not.",
+  "unofficial-monumenta-mod.config.option.chestCount_disablePacketMaxOverride": "Disable server max count override",
+  "unofficial-monumenta-mod.config.option.chestCount_disablePacketMaxOverride.tooltip": "Whether the server is disallowed from overriding the local max chest count.",
 
   "unofficial-monumenta-mod.delvebounty.newBountyMessage": "New Delve bounty: ",
 

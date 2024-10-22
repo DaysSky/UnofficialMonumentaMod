@@ -76,10 +76,16 @@ public class ChestCountOverlay extends HudElement {
 			if (total != null) {
 				//Value given by the server should be trusted more than the local value.
 				currentCount = Integer.parseInt(total);
+				if (UnofficialMonumentaModClient.options.shardDebug) {
+					UnofficialMonumentaModClient.debug("Overid total chests: " + currentCount + " / " + totalChests);
+				}
 			} else if (added != null) {
 				UnofficialMonumentaModClient.LOGGER.warn("Got full match of chest counter but failed to get total\nAttempting to add value to local version instead");
 				int addedInt = Integer.parseInt(added);
 				addCount(addedInt);
+				if (UnofficialMonumentaModClient.options.shardDebug) {
+					UnofficialMonumentaModClient.debug("Updated total chests: " + currentCount + " / " + totalChests);
+				}
 			}
 		}
 	}
@@ -100,9 +106,16 @@ public class ChestCountOverlay extends HudElement {
 	}
 
 	public void onStrikeChestUpdatePacket(ChannelHandler.StrikeChestUpdatePacket packet) {
-		totalChests = packet.newLimit;
+		if (!UnofficialMonumentaModClient.options.chestCount_disablePacketMaxOverride) {
+			totalChests = packet.newLimit;
+		}
+
 		if (packet.count != null) {
 			currentCount = packet.count;
+		}
+
+		if (UnofficialMonumentaModClient.options.shardDebug) {
+			UnofficialMonumentaModClient.debug("Strike Packet received\nOverid total chests: " + currentCount + " / " + totalChests);
 		}
 	}
 
@@ -118,8 +131,9 @@ public class ChestCountOverlay extends HudElement {
 	}
 
 	public void onShardChange(String shardName) {
-			totalChests = ShardData.getMaxChests(shardName); // if null then non strike, if 0 then strike but max is unknown, > 0 means it's known so then render the max
-			currentCount = 0;
+		//now serves mostly as a fallback as most (if not all) content now uses StrikeChestUpdatePacket
+		totalChests = ShardData.getMaxChests(shardName); // if null then non strike, if 0 then strike but max is unknown, > 0 means it's known so then render the max
+		currentCount = 0;
 	}
 
 	@Override

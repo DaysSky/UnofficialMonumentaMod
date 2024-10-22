@@ -223,5 +223,10 @@
     "officialName": "Celestial Zenith",
     "shardType": "STRIKE",
     "maxChests": null
+  },
+  "hexfall": {
+    "officialName": "Hexfall",
+    "shardType": "STRIKE",
+    "maxChests": 99
   }
 }
