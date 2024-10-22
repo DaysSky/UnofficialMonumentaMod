@@ -138,7 +138,11 @@ public class EffectOverlay extends HudElement {
 		for (Effect effect : effects) {
 			for (Effect cumulativeEffect : cumulativeEffects) {
 				if (Objects.equals(cumulativeEffect.name, effect.name) && cumulativeEffect.isPercentage == effect.isPercentage) {
-					accumulateEffects(cumulativeEffect, effect);
+					if (Objects.equals(EffectData.getOverrideMethod(cumulativeEffect.name), "multiplicative")) {
+						accumulateEffectsPOWA(cumulativeEffect, effect);
+					} else {
+						accumulateEffects(cumulativeEffect, effect);
+					}
 					continue effectLoop;
 				}
 			}
@@ -147,6 +151,27 @@ public class EffectOverlay extends HudElement {
 		//clear effects that well... don't affect and aren't 0 power effects.
 		cumulativeEffects.removeIf((effect) -> effect.effectPower == 0 && !effect.isNonStackableEffect);
 		return cumulativeEffects;
+	}
+
+	//DOES NOT COUNT THE BASE ATTRIBUTE. //NOTE TO SELF, I prolly botched this, so might want more thorough testing.
+	private void accumulateEffectsPOWA(Effect curr, Effect acc) {
+		//powa accumulator logic a.k.a multiplicative accumulation
+		if (curr.positiveEffect != acc.positiveEffect) {
+			if (curr.positiveEffect) {
+				curr.effectPower /=  (1 +(acc.effectPower / 100));
+			} else {
+				curr.positiveEffect = true;
+				float temp = curr.effectPower;
+				curr.effectPower = acc.effectPower;
+				curr.effectPower /= (1 + (temp / 100));
+			}
+		} else {
+			curr.effectPower *=  (1 + (acc.effectPower / 100));
+		}
+
+		if (acc.effectTime < curr.effectTime) {
+			curr.effectTime = acc.effectTime;
+		}
 	}
 
 	private void accumulateEffects(Effect curr, Effect acc) {
