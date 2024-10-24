@@ -121,7 +121,6 @@ public class DiscordPresence {
 					presence.state = !Objects.equals(shard, ShardData.UNKNOWN_SHARD) ? "Playing Monumenta - " + shard : "Playing Monumenta";
 
 					String shardName = getShardOfficialName(shard);
-					System.out.println(shardName);
 					if (!Objects.equals(shard, ShardData.UNKNOWN_SHARD)) {
 						ShardData.Shard localShard = ShardData.getShard(shard);
 

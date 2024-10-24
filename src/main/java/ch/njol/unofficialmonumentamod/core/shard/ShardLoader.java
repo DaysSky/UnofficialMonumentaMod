@@ -105,7 +105,7 @@ public class ShardLoader {
             debug("Skipping tab header " + shardString + ", receiving location from packets (world spoof or locationUpdatedPacket).");
             return;
         }
-        debug("Received new tab header: " + shardString);
+        debug("Received tab header update: " + shardString);
 
         checkAndDispatchEvent(shard);
     }

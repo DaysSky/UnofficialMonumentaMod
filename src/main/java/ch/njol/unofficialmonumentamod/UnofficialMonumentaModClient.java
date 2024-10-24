@@ -101,7 +101,9 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to load configuration file", e);
 		}
 
-		PersistentData.getInstance().initialize();
+		if (!PersistentData.getInstance().initialize()) {
+			UnofficialMonumentaModClient.LOGGER.fatal("Failed to load persistence data, old data will be overridden by the end of this session.");
+		}
 
 		if (options.discordEnabled) {
 			if (canInitializeDiscord()) {
@@ -134,7 +136,6 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 		ClientPlayConnectionEvents.JOIN.register(((handler, sender, client) -> {
 			ShardLoader.onWorldLoaded();
-
 			if (!PersistentData.getInstance().onLogin()) {
 				new Timer().schedule(new TimerTask() {
 					@Override
@@ -161,9 +162,10 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		ChestCountOverlay.INSTANCE.initializeListeners();
 		Locations.registerListeners();
 		Calculator.registerListeners();
+
 		ShardData.ShardChangedEventCallback.EVENT.register((currentShard, previousShard) -> {
 			if (options.shardDebug) {
-				LOGGER.info("Received shard update: " + previousShard + " -> " + currentShard);
+                debug("Received shard update: " + previousShard + " -> " + currentShard);
 			}
 		});
 
@@ -200,7 +202,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			MutableText text = Text.literal(message);
 			text.setStyle(Style.EMPTY.withColor(Formatting.YELLOW));
 			MessageNotifier.RenderedMessage renderedMessage = new MessageNotifier.RenderedMessage(text);
-			MessageNotifier.getInstance().addMessageToQueue(renderedMessage);
+			MessageNotifier.getInstance().addOrStackMessageToQueue(renderedMessage);
 		}
 
 		UnofficialMonumentaModClient.LOGGER.info(message);
@@ -232,11 +234,11 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		String shard = Locations.getShard();
 
-		if (!Objects.equals(shard, "unknown")) {
-			onMM = true;
+		if (ShardData.UNKNOWN_SHARD.equals(shard)) {
+			return true;
 		}
 
-		if (!onMM && mc.getCurrentServerEntry() != null) {
+		if (mc.getCurrentServerEntry() != null) {
 			onMM = !mc.isInSingleplayer() && mc.getCurrentServerEntry().address.toLowerCase().endsWith(".playmonumenta.com");
 		}
 		return onMM;
@@ -272,13 +274,13 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			inDevEnvironment = loader.isDevelopmentEnvironment();
 
 			if (!loader.isModLoaded(MOD_IDENTIFIER)) {
-				throw new IllegalStateException("Unofficial Monumenta Mod is incorrectly loaded,\n proceeding to throw a wrench into the mod loader.");
+				throw new IllegalStateException("Unofficial Monumenta Mod is incorrectly loaded,\nproceeding to throw a wrench into the mod loader.");
 			}
 
 			Optional<ModContainer> selfContainer = loader.getModContainer(MOD_IDENTIFIER);
 			if (selfContainer.isEmpty()) {
 				//Same as above
-				throw new IllegalStateException("Unofficial Monumenta Mod is incorrectly loaded,\n proceeding to throw a wrench into the mod loader.");
+				throw new IllegalStateException("Unofficial Monumenta Mod is incorrectly loaded,\nproceeding to throw a wrench into the mod loader.");
 			}
 			ModMetadata selfMeta = selfContainer.get().getMetadata();
 			version = selfMeta.getVersion();

@@ -15,6 +15,7 @@ import net.minecraft.text.Text;
 
 public class MessageNotifier extends HudElement {
     private static final MessageNotifier INSTANCE = new MessageNotifier();
+    private static final float MAX_MESSAGE_SCALE_FACTOR = getInstance().getBaseScaleFactor() * 1.6F;
 
     public static MessageNotifier getInstance() {
         return INSTANCE;
@@ -22,7 +23,22 @@ public class MessageNotifier extends HudElement {
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
-    private final List<RenderedMessage> messages = new ArrayList<>();//mostly using for queue stuff :P
+    private final List<RenderedMessage> messages = new ArrayList<>();
+
+    public void addOrStackMessageToQueue(RenderedMessage message) {
+        for (RenderedMessage renderedMessage : messages) {
+            if (renderedMessage.equals(message)) {
+                //Only extend by a bit to avoid an "infinite" loop of growing.
+                renderedMessage.firstRenderMillis += (System.currentTimeMillis() - renderedMessage.firstRenderMillis) / 4;
+
+                //visually show the stacks.
+                renderedMessage.setScaleFactor(Math.min(MAX_MESSAGE_SCALE_FACTOR, renderedMessage.scaleFactor * 1.05F));
+                return;
+            }
+        }
+
+        addMessageToQueue(message);
+    }
 
     public void addMessageToQueue(RenderedMessage message) {
         if (isRenderedQueueFull() && UnofficialMonumentaModClient.options.notifierEarlyDismiss) {
@@ -121,17 +137,11 @@ public class MessageNotifier extends HudElement {
         }
     }
 
-    //OPTIONS
-    //position
-    //max height
-    //max width
-    //scale factor?
-    //notification render time (time before a message is dismissed)
-    //early dismissal if notifications overflow the stack (e.g: if filled, then first will be forcibly dismissed even if it was supposed to stay much longer).
-
     public static class RenderedMessage {
         public long firstRenderMillis = -1;
-        public final List<Text> message;
+
+        private final Text originalMessage;
+        public List<Text> message;
 
         public boolean isInitialized() {
             return firstRenderMillis != -1;
@@ -139,19 +149,28 @@ public class MessageNotifier extends HudElement {
 
         public long dismissalTime = -1;
 
-        public final float scaleFactor;
+        public float scaleFactor;
 
         public RenderedMessage(Text message) {
-            this.message = truncateTextToWidth(message, MessageNotifier.getInstance().getBaseScaleFactor());
+            this.originalMessage = message;
+            this.message = truncateTextToWidth(message, 1.0F);
             this.scaleFactor = 1.0F;
         }
 
         public RenderedMessage(Text message, float scaleFactor) {
-            this.message = truncateTextToWidth(message, scaleFactor * MessageNotifier.getInstance().getBaseScaleFactor());
+            this.originalMessage = message;
+            this.message = truncateTextToWidth(message, scaleFactor);
             this.scaleFactor = scaleFactor;
         }
 
+        protected void setScaleFactor(float scaleFactor) {
+            this.scaleFactor = scaleFactor;
+            this.message = truncateTextToWidth(originalMessage, scaleFactor);
+        }
+
         private static List<Text> truncateTextToWidth(Text originalMessage, float scaleFactor) {
+            scaleFactor *= MessageNotifier.getInstance().getBaseScaleFactor();
+
             int width = MessageNotifier.getInstance().getDimension().width;
             if ((client.textRenderer.getWidth(originalMessage) * scaleFactor) > width) {
                 List<Text> lines = new ArrayList<>();
@@ -266,7 +285,7 @@ public class MessageNotifier extends HudElement {
                 return false;
             }
 
-            return message.equals(o.message);
+            return originalMessage.getString().equals(o.originalMessage.getString()) && originalMessage.getStyle().equals(o.originalMessage.getStyle());
         }
     }
 
