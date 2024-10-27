@@ -8,7 +8,6 @@ import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.annotation.Nullable;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -19,11 +18,12 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.jetbrains.annotations.Nullable;
 
 public class ChestCountOverlay extends HudElement {
 	//TODO generalize this class to be able to create one for any actionbar based counter / maybe other sources?
 
-	public static final Pattern ACTIONBAR_PATTERN = Pattern.compile("(?<total>[0-9]{1,3}) total chests added to lootroom\\. \\(\\+(?<added>[0-9])\\)", Pattern.CASE_INSENSITIVE);
+	public static final Pattern ACTIONBAR_PATTERN = Pattern.compile("(?<total>[0-9]{1,3}) total chests? added to lootroom\\. \\(\\+(?<added>[0-9])\\)", Pattern.CASE_INSENSITIVE);
 
 	public static final ChestCountOverlay INSTANCE = new ChestCountOverlay();
 
@@ -75,10 +75,16 @@ public class ChestCountOverlay extends HudElement {
 			if (total != null) {
 				//Value given by the server should be trusted more than the local value.
                 currentCount = Integer.parseInt(total);
+				if (UnofficialMonumentaModClient.options.shardDebug) {
+					UnofficialMonumentaModClient.debug("Overid total chests: " + currentCount + " / " + totalChests);
+				}
 			} else if (added != null) {
 				UnofficialMonumentaModClient.LOGGER.warn("Got full match of chest counter but failed to get total\nAttempting to add value to local version instead");
 				int addedInt = Integer.parseInt(added);
 				addCount(addedInt);
+				if (UnofficialMonumentaModClient.options.shardDebug) {
+					UnofficialMonumentaModClient.debug("Updated total chests: " + currentCount + " / " + totalChests);
+				}
 			}
 		}
 	}
@@ -99,9 +105,16 @@ public class ChestCountOverlay extends HudElement {
 	}
 
 	public void onStrikeChestUpdatePacket(ChannelHandler.StrikeChestUpdatePacket packet) {
-		totalChests = packet.newLimit;
+		if (!UnofficialMonumentaModClient.options.chestCount_disablePacketMaxOverride) {
+			totalChests = packet.newLimit;
+		}
+
 		if (packet.count != null) {
 			currentCount = packet.count;
+		}
+
+		if (UnofficialMonumentaModClient.options.shardDebug) {
+			UnofficialMonumentaModClient.debug("Strike Packet received\nOverid total chests: " + currentCount + " / " + totalChests);
 		}
 	}
 
@@ -117,8 +130,9 @@ public class ChestCountOverlay extends HudElement {
 	}
 
 	public void onShardChange(String shardName) {
-			totalChests = ShardData.getMaxChests(shardName); // if null then non strike, if 0 then strike but max is unknown, > 0 means it's known so then render the max
-			currentCount = 0;
+		//now serves mostly as a fallback as most (if not all) content now uses StrikeChestUpdatePacket
+		totalChests = ShardData.getMaxChests(shardName); // if null then non strike, if 0 then strike but max is unknown, > 0 means it's known so then render the max
+		currentCount = 0;
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package ch.njol.unofficialmonumentamod.mixins;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData;
+import ch.njol.unofficialmonumentamod.features.effects.EffectData;
 import ch.njol.unofficialmonumentamod.features.misc.SlotLocking;
 import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
 import java.util.List;
@@ -27,6 +28,7 @@ public class ReloadableResourceManagerImplMixin {
 		UnofficialMonumentaModClient.locations.reload();
 		UnofficialMonumentaModClient.spoofer.reload();
 		ShardData.reload();
+		EffectData.reload();
 		SlotLocking.getInstance().reload();
 	}
 

@@ -5,9 +5,11 @@ import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import java.util.Collection;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
@@ -16,6 +18,7 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
@@ -41,11 +44,43 @@ public class MainCommand extends Constants {
         builder.then(ClientCommandManager.literal("persistence")
                 .then(ClientCommandManager.literal("list").executes(ctx -> runListPersistentData())));
 
+        builder.then(ClientCommandManager.literal("help")
+                .then(ClientCommandManager.argument("commandName", StringArgumentType.string())
+                        .suggests(CommandHelpBuilder.CommandHelpSuggestionProvider())
+                        .executes(MainCommand::runHelpSingular))
+                .executes(MainCommand::runHelp));
+
         return builder;
     }
 
     public String getName() {
         return MainCommand.class.getSimpleName();
+    }
+
+    private static int runHelpSingular(CommandContext<FabricClientCommandSource> ctx) {
+        String commandName = ctx.getArgument("commandName", String.class);
+        if (commandName == null) {
+            ctx.getSource().sendError(Text.of("Could not get command name"));
+            return 1;
+        }
+
+        String tree = CommandHelpBuilder.getTreeOf(commandName);
+
+        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent(commandName + ":\n    " + tree)).fillStyle(Constants.MAIN_INFO_STYLE));
+        return 0;
+    }
+
+    private static int runHelp(CommandContext<FabricClientCommandSource> ctx) {
+        Map<String, String> commandTrees = CommandHelpBuilder.getCommandTrees();
+
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, String> entry: commandTrees.entrySet()) {
+            builder.append(entry.getKey()).append(":\n    ").append(entry.getValue())
+                    .append('\n');
+        }
+
+        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent(builder.toString())).fillStyle(MAIN_INFO_STYLE));
+        return 0;
     }
 
     private static int runListPersistentData() {
@@ -109,17 +144,14 @@ public class MainCommand extends Constants {
     }
 
     private static String getSelfInfoString() {
-        StringBuilder data = new StringBuilder();
-        data.append("[Mod Info]");
-
         String name = UnofficialMonumentaModClient.ModInfo.name;
-        data.append("\nName: ").append(name);
-        data.append("\nVersion: ").append(UnofficialMonumentaModClient.ModInfo.getVersion());
-        data.append("\nFile name: ").append(UnofficialMonumentaModClient.ModInfo.fileName);
-
-        data.append("\nMinecraft: ").append(MinecraftClient.getInstance().getGameVersion()).append("-").append(SharedConstants.getGameVersion().getName());
-        data.append("\nIn Development environment: ").append(FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No");
-        return data.append("\n").toString();
+        return "[Mod Info]" +
+                "\nName: " + name +
+                "\nVersion: " + UnofficialMonumentaModClient.ModInfo.getVersion() +
+                "\nFile name: " + UnofficialMonumentaModClient.ModInfo.fileName +
+                "\nMinecraft: " + MinecraftClient.getInstance().getGameVersion() + "-" + SharedConstants.getGameVersion().getName() +
+                "\nIn Development environment: " + (FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No") +
+                "\n";
     }
 
     private static String getModListString() {

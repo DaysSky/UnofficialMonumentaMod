@@ -89,9 +89,10 @@ public class ShardDebugCommand extends Constants {
             String currentShard = ShardData.getCurrentShard().shardString;
             boolean isEdited = ShardData.editedShard;
             boolean isWorldSpoofOptionEnabled = ShardLoader.isWorldSpoofingEnabled();
+            boolean receivesLocationsPackets = ShardLoader.receivesLocationPackets();
 
             //check if it loaded correctly when entering the shard (should show false if it wasn't able to load the shard after world load)
-            boolean loadedCorrectly = !Objects.equals(lastShard, currentShard);
+            boolean loadedCorrectly = !Objects.equals(lastShard, currentShard);//Sounds like it's still broken (TODO: FIX THIS)
 
             //count: (if max exists then count/max else just count) loaded shard: lastShard, current shard: currentShard
             MutableText text = Text.literal("[Current Shard]\n").setStyle(MAIN_INFO_STYLE);
@@ -112,7 +113,10 @@ public class ShardDebugCommand extends Constants {
             text.append(Text.literal((isEdited ? "Yes" : "No")+  "\n" ).setStyle(VALUE_STYLE));
 
             text.append(Text.literal("Is World Spoofing Enabled: ").setStyle(KEY_INFO_STYLE));
-            text.append(Text.literal(isWorldSpoofOptionEnabled ? "Yes" : "No").setStyle(VALUE_STYLE));
+            text.append(Text.literal((isWorldSpoofOptionEnabled ? "Yes" : "No") + "\n" + (receivesLocationsPackets ? "(Ignored)" : "")).setStyle(VALUE_STYLE));
+
+            text.append(Text.literal("Does the client receive location update packets: ").setStyle(KEY_INFO_STYLE));
+            text.append(Text.literal((receivesLocationsPackets ? "Yes" : "No") + "\n").setStyle(VALUE_STYLE));
 
             MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);
             return 0;

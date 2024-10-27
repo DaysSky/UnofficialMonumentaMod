@@ -1,6 +1,7 @@
 package ch.njol.unofficialmonumentamod.features.misc.notifications;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.core.shard.ShardLoader;
 import ch.njol.unofficialmonumentamod.features.locations.Locations;
 import ch.njol.unofficialmonumentamod.features.misc.managers.MessageNotifier;
 import java.util.Objects;
@@ -29,7 +30,7 @@ public class LocationNotifier {
 
 
 		String shard = Locations.getShortShard();
-		if (shard.equals("unknown") || client.player == null) {
+		if (shard.equals(ShardLoader.UNKNOWN_SHARD) || client.player == null) {
 			return;
 		}
 
