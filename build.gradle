@@ -58,8 +58,8 @@ repositories {
     mavenCentral()
     maven { url = "https://maven.terraformersmc.com" }
     maven { url = "https://maven.shedaniel.me/" }
-    jcenter()
     maven { url = "https://jitpack.io/" }
+    maven { url = "https://repo1.maven.org/maven2/" }
 }
 
 processResources {
@@ -68,7 +68,6 @@ processResources {
         expand project.properties
         duplicatesStrategy = 'include'
     }
-
     from(sourceSets.main.resources.srcDirs) {
         exclude "fabric.mod.json"
         duplicatesStrategy = 'include'
