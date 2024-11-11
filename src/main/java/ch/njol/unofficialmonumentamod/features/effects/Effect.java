@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -94,19 +94,19 @@ public class Effect {
 	}
 
 	public Text toText(float tickDelta, boolean rightAligned) {
-		Text timeText = MutableText.of(new LiteralTextContent((rightAligned ? " " : "") + getTimeRemainingAsString(tickDelta) + (rightAligned ? "" : " ")));
+		Text timeText = MutableText.of(PlainTextContent.of((rightAligned ? " " : "") + getTimeRemainingAsString(tickDelta) + (rightAligned ? "" : " ")));
 		Style effectStyle = Style.EMPTY.withColor((isPositive() == (effectPower >= 0)) ? Formatting.GREEN : Formatting.RED);
 		String effectStringPrefix = effectPower != 0 ? (isPositive() == (effectPower > 0) ? "+" : "-") : "";
 		String effectString = effectStringPrefix + (effectPower != 0 ? POWER_FORMAT.format(effectPower) + (isPercentage ? "%" : "") + " " : "") + name;
-		Text effectText = MutableText.of(new LiteralTextContent(effectString)).setStyle(effectStyle);
+		Text effectText = MutableText.of(PlainTextContent.of(effectString)).setStyle(effectStyle);
 		TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
 		int maxEffectWidth = UnofficialMonumentaModClient.options.effect_width - textRenderer.getWidth(timeText);
 		if (textRenderer.getWidth(effectText) > maxEffectWidth) {
 			int trimmedLength = textRenderer.getTextHandler().getTrimmedLength(effectString, maxEffectWidth - textRenderer.getWidth("..."), effectStyle);
-			effectText = MutableText.of(new LiteralTextContent(effectString.substring(0, trimmedLength) + "...")).setStyle(effectStyle);
+			effectText = MutableText.of(PlainTextContent.of(effectString.substring(0, trimmedLength) + "...")).setStyle(effectStyle);
 		}
-		return rightAligned ? MutableText.of(new LiteralTextContent("")).append(effectText).append(timeText)
-			       : MutableText.of(new LiteralTextContent("")).append(timeText).append(effectText);
+		return rightAligned ? MutableText.of(PlainTextContent.of("")).append(effectText).append(timeText)
+			       : MutableText.of(PlainTextContent.of("")).append(timeText).append(effectText);
 	}
 
 	public void tick() {

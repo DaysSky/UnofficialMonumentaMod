@@ -7,8 +7,8 @@ import ch.njol.unofficialmonumentamod.core.shard.ShardData;
 import java.util.Map;
 import java.util.Objects;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -53,7 +53,7 @@ public class DelveBounty {
 
                 MutableText text = Text.translatable("unofficial-monumenta-mod.delvebounty.newBountyMessage")
                         .setStyle(Style.EMPTY.withColor(Formatting.GOLD))
-                        .append(MutableText.of(new LiteralTextContent(entry.getValue().officialName)).setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                        .append(MutableText.of(PlainTextContent.of(entry.getValue().officialName)).setStyle(Style.EMPTY.withColor(Formatting.RED)));
                 MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);
                 break;
             }

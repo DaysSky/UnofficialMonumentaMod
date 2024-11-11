@@ -6,8 +6,8 @@ import java.util.List;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.LiteralTextContent;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.jetbrains.annotations.Nullable;
@@ -26,7 +26,7 @@ public abstract class ItemStackMixin {
 	@Inject(method = "getTooltip", at = @At(value = "INVOKE_ASSIGN", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 0), locals = LocalCapture.CAPTURE_FAILSOFT)
 	private void onTooltip(@Nullable PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir, List<Text> list) {
 		if (TextureSpoofer.shouldEdit((ItemStack) (Object) this)) {
-			list.add(MutableText.of(new LiteralTextContent("Spoofed: " + UnofficialMonumentaModClient.spoofer.spoofedItems.get(this.getName().getString().toLowerCase()).displayName)).formatted(Formatting.DARK_GRAY));
+			list.add(MutableText.of(PlainTextContent.of("Spoofed: " + UnofficialMonumentaModClient.spoofer.spoofedItems.get(this.getName().getString().toLowerCase()).displayName)).formatted(Formatting.DARK_GRAY));
 		}
 	}
 }

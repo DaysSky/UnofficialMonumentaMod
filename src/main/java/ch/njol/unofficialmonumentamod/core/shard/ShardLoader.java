@@ -2,6 +2,8 @@ package ch.njol.unofficialmonumentamod.core.shard;
 
 import ch.njol.unofficialmonumentamod.ChannelHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
+import ch.njol.unofficialmonumentamod.core.shard.ShardData.ShardChangedEventCallback;
+import ch.njol.unofficialmonumentamod.core.shard.ShardData.TabShard;
 import java.util.Objects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;

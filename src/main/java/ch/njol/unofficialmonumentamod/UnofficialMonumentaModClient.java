@@ -45,8 +45,10 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import net.fabricmc.loader.api.metadata.ModOrigin;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.item.ModelPredicateProviderRegistry;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.text.MutableText;
@@ -232,12 +234,15 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 		MinecraftClient mc = MinecraftClient.getInstance();
 		String shard = Locations.getShard();
 
-		if (ShardData.UNKNOWN_SHARD.equals(shard)) {
+		if (!ShardData.UNKNOWN_SHARD.equals(shard)) {
 			return true;
 		}
 
-		if (mc.getCurrentServerEntry() != null) {
-			onMM = !mc.isInSingleplayer() && mc.getCurrentServerEntry().address.toLowerCase().endsWith(".playmonumenta.com");
+		ClientPlayNetworkHandler clientPlayNetworkHandler = mc.getNetworkHandler();
+		if (clientPlayNetworkHandler != null && clientPlayNetworkHandler.getBrand() != null) {
+			String serverBrand = clientPlayNetworkHandler.getBrand();
+			System.out.println(serverBrand);
+			onMM = !mc.isInSingleplayer() && serverBrand.startsWith("Monumenta");
 		}
 		return onMM;
 	}
@@ -284,7 +289,18 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			ModMetadata selfMeta = selfContainer.get().getMetadata();
 			version = selfMeta.getVersion();
 			name = selfMeta.getName();
-			fileName = !inDevEnvironment ? selfContainer.get().getOrigin().getPaths().get(0).getFileName().toString() : "Unknown";
+
+			ModOrigin origin = selfContainer.get().getOrigin();
+			fileName = switch (origin.getKind()) {
+				case PATH -> origin.getPaths().get(0).getFileName().toString();
+				case NESTED -> {
+					if (selfContainer.get().getContainingMod().isPresent()) {
+						yield selfContainer.get().getContainingMod().get().getOrigin().getPaths().get(0).getFileName().toString();
+					}
+					yield "UNKNOWN";
+				}
+				case UNKNOWN -> "UNKNOWN";
+			};
 
 			if (selfMeta.containsCustomValue("mod_extradata")) {
 				extraData = selfMeta.getCustomValue("mod_extradata").getAsString();
@@ -295,7 +311,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 
 		public static String getVersion() {
 			String version = ModInfo.version.getFriendlyString();
-			if (extraData != null) {
+			if (extraData != null && !extraData.isEmpty()) {
 				version += "-" + ModInfo.extraData;
 			}
 

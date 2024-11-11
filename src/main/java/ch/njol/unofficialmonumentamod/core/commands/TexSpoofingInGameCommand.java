@@ -14,7 +14,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.ItemStackArgument;
 import net.minecraft.command.argument.ItemStackArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
-import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
@@ -109,7 +109,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.addSpoof(finalItemName, replacementStack.getItem(), displayName, override))
-                .thenRun(() -> ctx.getSource().sendError(MutableText.of(new LiteralTextContent("Successfully created new spoof on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendError(MutableText.of(PlainTextContent.of("Successfully created new spoof on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
@@ -127,7 +127,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.deleteSpoof(finalItemName))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully deleted spoof on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully deleted spoof on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
@@ -146,7 +146,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editDisplayName(finalItemName, displayName))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed display name replacement on \"" + finalItemName + "\" to \"" + displayName + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed display name replacement on \"" + finalItemName + "\" to \"" + displayName + "\"")).fillStyle(MAIN_INFO_STYLE)));
 
         return 0;
     }
@@ -166,7 +166,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editOverride(finalItemName, override))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed display override on \"" + finalItemName + "\" to \"" + override + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed display override on \"" + finalItemName + "\" to \"" + override + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
@@ -185,7 +185,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editItem(finalItemName, replacementStack.getItem()))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed item replacement on \"" + finalItemName + "\" to \"" + replacementStack.getItem().getName() + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed item replacement on \"" + finalItemName + "\" to \"" + replacementStack.getItem().getName() + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
@@ -204,7 +204,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editAppliedHope(finalItemName, uuid))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully changed item hope replacement on \"" + finalItemName + "\" to \"" + uuid.toString() + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully changed item hope replacement on \"" + finalItemName + "\" to \"" + uuid.toString() + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 
@@ -221,7 +221,7 @@ public class TexSpoofingInGameCommand extends Constants {
 
         String finalItemName = itemName;
         UnofficialMonumentaModClient.spoofer.runThenSaveFile(() -> UnofficialMonumentaModClient.spoofer.editAppliedHope(finalItemName, null))
-                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent("Successfully removed hope replacement on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
+                .thenRun(() -> ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of("Successfully removed hope replacement on \"" + finalItemName + "\"")).fillStyle(MAIN_INFO_STYLE)));
         return 0;
     }
 }

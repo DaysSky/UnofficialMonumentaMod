@@ -18,7 +18,7 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.ClickEvent;
-import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
@@ -37,9 +37,11 @@ public class MainCommand extends Constants {
 
         builder.then(ClientCommandManager.literal("info").executes(ctx -> runSelfInfo()));
         builder.then(ClientCommandManager.literal("info")
-                .then(ClientCommandManager.literal("modlist")
-                        .then(ClientCommandManager.literal("clip").executes(ctx -> runCopyInfo()))
-                        .executes(ctx -> runModList())));
+                        .then(ClientCommandManager.literal("clip")
+                                .executes(ctx -> runCopyInfo())
+                        .then(ClientCommandManager.literal("modlist")
+                                .executes(ctx -> runModList())))
+                );
 
         builder.then(ClientCommandManager.literal("persistence")
                 .then(ClientCommandManager.literal("list").executes(ctx -> runListPersistentData())));
@@ -66,7 +68,7 @@ public class MainCommand extends Constants {
 
         String tree = CommandHelpBuilder.getTreeOf(commandName);
 
-        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent(commandName + ":\n    " + tree)).fillStyle(Constants.MAIN_INFO_STYLE));
+        ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of(commandName + ":\n    " + tree)).fillStyle(Constants.MAIN_INFO_STYLE));
         return 0;
     }
 
@@ -79,7 +81,7 @@ public class MainCommand extends Constants {
                     .append('\n');
         }
 
-        ctx.getSource().sendFeedback(MutableText.of(new LiteralTextContent(builder.toString())).fillStyle(MAIN_INFO_STYLE));
+        ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of(builder.toString())).fillStyle(MAIN_INFO_STYLE));
         return 0;
     }
 
@@ -145,7 +147,8 @@ public class MainCommand extends Constants {
 
     private static String getSelfInfoString() {
         String name = UnofficialMonumentaModClient.ModInfo.name;
-        return "[Mod Info]" +
+        return "Mod Info" +
+                "\n------------" +
                 "\nName: " + name +
                 "\nVersion: " + UnofficialMonumentaModClient.ModInfo.getVersion() +
                 "\nFile name: " + UnofficialMonumentaModClient.ModInfo.fileName +
@@ -158,15 +161,19 @@ public class MainCommand extends Constants {
         Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods();
         StringBuilder data = new StringBuilder();
 
-        data.append("[Mod List]");
+        data.append("Mod List").append("\n------------");
         for (ModContainer mod: mods) {
             ModMetadata metadata = mod.getMetadata();
             if (metadata.getId().startsWith("fabric-") || metadata.getId().equals("minecraft") || metadata.getId().equals("java")) {
                 continue;//Skip fabric apis, Minecraft and Java.
             }
-            data.append("\n").append(metadata.getName()).append(" (").append(metadata.getId()).append(") ").append(metadata.getVersion().getFriendlyString());
+            data.append("\n")
+                            .append("[").append(metadata.getName()).append("]")
+                            .append("[").append(metadata.getId()).append("]")
+                            .append("[").append(metadata.getVersion().getFriendlyString()).append("]");
+
             if (mod.getContainingMod().isPresent()) {
-                data.append(" via ").append(mod.getContainingMod().get().getMetadata().getId());
+                data.append(" <").append(mod.getContainingMod().get().getMetadata().getId()).append(">");
             }
         }
 
@@ -174,7 +181,13 @@ public class MainCommand extends Constants {
     }
 
     private static int runCopyInfo() {
-        MinecraftClient.getInstance().keyboard.setClipboard(getSelfInfoString().concat(getModListString()));
+        MinecraftClient.getInstance().keyboard.setClipboard(
+                "```md\n"
+                        .concat(getSelfInfoString())
+                        .concat("\n")
+                        .concat(getModListString())
+                        .concat("\n```")
+        );
         MutableText text = Text.literal("Copied info to clipboard").setStyle(SUB_INFO_STYLE);
 
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);

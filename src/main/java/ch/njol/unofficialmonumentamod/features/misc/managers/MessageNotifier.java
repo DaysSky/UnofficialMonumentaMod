@@ -9,7 +9,7 @@ import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.LiteralTextContent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
@@ -179,7 +179,7 @@ public class MessageNotifier extends HudElement {
                 String messageContent = originalMessage.getString();
                 for (int i = 0; i < messageContent.length(); i++) {
                     if ((client.textRenderer.getWidth(newMessage.toString()) * scaleFactor) >= width) {
-                        lines.add(MutableText.of(new LiteralTextContent(newMessage.substring(0, newMessage.length() - 1).trim() + "⁻"))
+                        lines.add(MutableText.of(PlainTextContent.of(newMessage.substring(0, newMessage.length() - 1).trim() + "⁻"))
                                 .fillStyle(originalMessage.getStyle()));
                         newMessage.delete(0, newMessage.length() - 1);
                     }
@@ -187,7 +187,7 @@ public class MessageNotifier extends HudElement {
                 }
 
                 if (!newMessage.isEmpty()) {
-                    lines.add(MutableText.of(new LiteralTextContent(newMessage.toString().trim()))
+                    lines.add(MutableText.of(PlainTextContent.of(newMessage.toString().trim()))
                             .fillStyle(originalMessage.getStyle()));
                 }
 
