@@ -14,8 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class AbilityHandler {
 
-	private static final Identifier COOLDOWN_SOUND = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "cooldown_ping");
-	private static final Identifier COOLDOWN_SOUND_ALT = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "cooldown_ping_alt");
+	private static final Identifier COOLDOWN_SOUND = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "cooldown_ping");
+	private static final Identifier COOLDOWN_SOUND_ALT = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "cooldown_ping_alt");
 
 	public static final int MAX_ANIMATION_TICKS = 20;
 

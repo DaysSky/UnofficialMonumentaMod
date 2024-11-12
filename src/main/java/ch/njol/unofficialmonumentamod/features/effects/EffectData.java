@@ -16,7 +16,7 @@ import net.minecraft.util.Identifier;
 
 public class EffectData {
     private static final HashMap<String, EffectOverride> EFFECTS = new HashMap<>();
-    private static final Identifier FILE_IDENTIFIER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/effects.json");
+    private static final Identifier FILE_IDENTIFIER = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/effects.json");
     //current format
     //"effect name": {"method": "additive"|"multiplicative"}
 

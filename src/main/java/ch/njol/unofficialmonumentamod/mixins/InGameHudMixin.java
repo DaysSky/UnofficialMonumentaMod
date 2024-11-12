@@ -5,20 +5,28 @@ import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.features.misc.managers.MessageNotifier;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.LayeredDrawer;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Slice;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(InGameHud.class)
 public class InGameHudMixin {
 
+	@Shadow @Final private LayeredDrawer layeredDrawer;
 	@Unique
 	private final AbilitiesHud abilitiesHud = AbilitiesHud.INSTANCE;
 
@@ -27,27 +35,35 @@ public class InGameHudMixin {
 		ChestCountOverlay.INSTANCE.onActionbarReceived(message);
 	}
 
-	@Inject(method = "render",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusEffectOverlay(Lnet/minecraft/client/gui/DrawContext;)V", shift = At.Shift.BEFORE))
-	void renderSkills_beforeStatusEffects(DrawContext drawContext, float tickDelta, CallbackInfo ci) {
+	@Unique //TODO might want to find a way to move that to before the status effect layer to reflect earlier versions.
+	private void umm$preChatRenderHook(DrawContext context, @NotNull RenderTickCounter counter) {
 		if (!abilitiesHud.renderInFrontOfChat()) {
-			UnofficialMonumentaModClient.effectOverlay.renderAbsolute(drawContext, tickDelta);
-			ChestCountOverlay.INSTANCE.renderAbsolute(drawContext, tickDelta);
-			MessageNotifier.getInstance().renderAbsolute(drawContext, tickDelta);
-			abilitiesHud.renderAbsolute(drawContext, tickDelta);
+			umm$InGameHudRender(context, counter);
 		}
 	}
 
-	@Inject(method = "render",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/scoreboard/Scoreboard;getObjectiveForSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;)Lnet/minecraft/scoreboard/ScoreboardObjective;", shift = At.Shift.BEFORE),
-		slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/DrawContext;III)V")))
-	void renderSkills_afterChat(DrawContext drawContext, float tickDelta, CallbackInfo ci) {
+	@Unique
+	private void umm$postChatRenderHook(DrawContext context, @NotNull RenderTickCounter counter) {
 		if (abilitiesHud.renderInFrontOfChat()) {
-			UnofficialMonumentaModClient.effectOverlay.renderAbsolute(drawContext, tickDelta);
-			ChestCountOverlay.INSTANCE.renderAbsolute(drawContext, tickDelta);
-			MessageNotifier.getInstance().renderAbsolute(drawContext, tickDelta);
-			abilitiesHud.renderAbsolute(drawContext, tickDelta);
+			umm$InGameHudRender(context, counter);
 		}
+	}
+
+	@Unique
+	private void umm$InGameHudRender(DrawContext context, @NotNull RenderTickCounter counter) {
+		UnofficialMonumentaModClient.effectOverlay.renderAbsolute(context, counter);
+		ChestCountOverlay.INSTANCE.renderAbsolute(context, counter);
+		MessageNotifier.getInstance().renderAbsolute(context, counter);
+		abilitiesHud.renderAbsolute(context, counter);
+	}
+
+	@Inject(method = "<init>",
+	at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/LayeredDrawer;addSubDrawer(Lnet/minecraft/client/gui/LayeredDrawer;Ljava/util/function/BooleanSupplier;)Lnet/minecraft/client/gui/LayeredDrawer;", shift = At.Shift.BEFORE, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
+	void umm$inGameHudDrawerHook(MinecraftClient client, CallbackInfo ci, LayeredDrawer layeredDrawer, LayeredDrawer layeredDrawer2) {
+		//pre-chat
+		layeredDrawer.addLayer(this::umm$preChatRenderHook);
+		//post-chat
+		layeredDrawer2.addLayer(this::umm$postChatRenderHook);
 	}
 
 	/**

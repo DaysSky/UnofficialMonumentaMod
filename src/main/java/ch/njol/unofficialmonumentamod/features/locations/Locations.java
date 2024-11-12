@@ -128,7 +128,7 @@ public class Locations {
 		                                 .setPrettyPrinting()
 			.excludeFieldsWithoutExposeAnnotation()
 		                                 .create();
-	private static final Identifier FILE_IDENTIFIER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/locations.json");
+	private static final Identifier FILE_IDENTIFIER = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/locations.json");
 
 	protected void registerLocation(String shard, String locName, int x1, int z1, int x2, int z2) {
 		if (getLocationByName(shard, locName) != null) {

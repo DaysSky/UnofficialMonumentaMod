@@ -14,6 +14,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.text.Text;
 
 public class EffectOverlay extends HudElement {
@@ -208,7 +209,8 @@ public class EffectOverlay extends HudElement {
 	}
 
 	@Override
-	protected void render(DrawContext drawContext, float tickDelta) {
+	protected void render(DrawContext drawContext, RenderTickCounter tickCounter) {
+		float tickDelta = tickCounter.getTickDelta(true);
 		ArrayList<Effect> visibleEffects = isInEditMode() ? dummyEffects : UnofficialMonumentaModClient.options.effect_compress ? getCumulativeEffects() : effects;
 		TextRenderer textRenderer = client.textRenderer;
 

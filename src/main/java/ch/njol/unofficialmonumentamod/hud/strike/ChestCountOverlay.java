@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.ClickEvent;
@@ -43,7 +44,7 @@ public class ChestCountOverlay extends HudElement {
 	}
 
 	@Override
-	protected void render(DrawContext drawContext, float tickDelta) {
+	protected void render(DrawContext drawContext, RenderTickCounter tickCounter) {
 		final TextRenderer tr = MinecraftClient.getInstance().textRenderer;
 
 		drawContext.fill(0, 0, WIDTH, HEIGHT, MinecraftClient.getInstance().options.getTextBackgroundColor(UnofficialMonumentaModClient.options.overlay_opacity));

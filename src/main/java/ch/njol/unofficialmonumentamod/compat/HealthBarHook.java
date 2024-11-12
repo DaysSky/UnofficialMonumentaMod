@@ -3,16 +3,16 @@ package ch.njol.unofficialmonumentamod.compat;
 import com.provismet.provihealth.api.ProviHealthApi;
 
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
-import net.minecraft.entity.EntityGroup;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Items;
+import net.minecraft.registry.tag.EntityTypeTags;
 import net.minecraft.util.Identifier;
 
 public class HealthBarHook implements ProviHealthApi {
     @Override
     public void onInitialize () {
-        final Identifier DUELIST_BORDER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/healthbars/duelist_portrait.png");
-        final Identifier SLAYER_BORDER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/healthbars/slayer_portrait.png");
+        final Identifier DUELIST_BORDER = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/healthbars/duelist_portrait.png");
+        final Identifier SLAYER_BORDER = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "textures/gui/healthbars/slayer_portrait.png");
 
         // Creates new displays for Monumenta's custom entity groupings.
         final EntityType<?>[] duelist = {
@@ -44,21 +44,21 @@ public class HealthBarHook implements ProviHealthApi {
         };
 
         // Duelist
-        this.registerPortrait(EntityGroup.ILLAGER, DUELIST_BORDER, true);
-        this.registerIcon(EntityGroup.ILLAGER, Items.PLAYER_HEAD, true);
+        this.registerPortrait(EntityTypeTags.ILLAGER, DUELIST_BORDER, 1);
+        this.registerIcon(EntityTypeTags.ILLAGER, Items.PLAYER_HEAD, 1);
         for (EntityType<?> type : duelist) {
-            this.registerPortrait(type, DUELIST_BORDER);
-            this.registerIcon(type, Items.PLAYER_HEAD);
+            this.registerPortrait(type, DUELIST_BORDER, 1);
+            this.registerIcon(type, Items.PLAYER_HEAD, 1);
         }
 
         // Slayer
-        this.registerPortrait(EntityGroup.AQUATIC, SLAYER_BORDER, true);
-        this.registerPortrait(EntityGroup.ARTHROPOD, SLAYER_BORDER, true);
-        this.registerIcon(EntityGroup.AQUATIC, Items.CREEPER_HEAD, true);
-        this.registerIcon(EntityGroup.ARTHROPOD, Items.CREEPER_HEAD, true);
+        this.registerPortrait(EntityTypeTags.AQUATIC, SLAYER_BORDER, 1);
+        this.registerPortrait(EntityTypeTags.ARTHROPOD, SLAYER_BORDER, 1);
+        this.registerIcon(EntityTypeTags.AQUATIC, Items.CREEPER_HEAD, 1);
+        this.registerIcon(EntityTypeTags.ARTHROPOD, Items.CREEPER_HEAD, 1);
         for (EntityType<?> type : slayer) {
-            this.registerPortrait(type, SLAYER_BORDER);
-            this.registerIcon(type, Items.CREEPER_HEAD);
+            this.registerPortrait(type, SLAYER_BORDER, 1);
+            this.registerIcon(type, Items.CREEPER_HEAD, 1);
         }
     }
 }

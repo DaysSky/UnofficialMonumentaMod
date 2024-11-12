@@ -6,18 +6,23 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import io.netty.buffer.ByteBuf;
 import java.nio.charset.StandardCharsets;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.packet.s2c.custom.DebugBreezeCustomPayload;
 import net.minecraft.util.Identifier;
+import org.apache.commons.lang3.NotImplementedException;
 import org.jetbrains.annotations.Nullable;
 
-public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
+public class ChannelHandler implements ClientPlayNetworking.PlayPayloadHandler<ChannelHandler.JsonCustomPayload> {
 
-	public static final Identifier CHANNEL_ID = new Identifier("monumenta:client_channel_v1");
+	public static final CustomPayload.Id<JsonCustomPayload> CHANNEL_ID = new CustomPayload.Id<>(Identifier.of("monumenta:client_channel_v1"));
 
 	private final Gson gson;
 	private final AbilityHandler abilityHandler;
@@ -172,12 +177,10 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 	}
 
 	@Override
-	public void receive(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
-		String message = buf.readCharSequence(buf.readableBytes(), StandardCharsets.UTF_8).toString();
-		JsonElement json = JsonParser.parseString(message);
-		if (UnofficialMonumentaModClient.options.logPackets) {
-			UnofficialMonumentaModClient.LOGGER.info("[UMM] read packet: " + json);
-		}
+	public void receive(JsonCustomPayload payload, ClientPlayNetworking.Context context) {
+		MinecraftClient client = context.client();
+
+		JsonElement json = payload.element;
 		client.execute(() -> {
 			String packetType = json.getAsJsonObject().getAsJsonPrimitive("_type").getAsString();
 			switch (packetType) {
@@ -218,4 +221,32 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 		});
 	}
 
+	public static JsonElement decode(PacketByteBuf buf) {
+		String message = buf.readCharSequence(buf.readableBytes(), StandardCharsets.UTF_8).toString();
+		JsonElement json = JsonParser.parseString(message);
+		if (UnofficialMonumentaModClient.options.logPackets) {
+			UnofficialMonumentaModClient.LOGGER.info("[UMM] read packet: " + json);
+		}
+		return json;
+	}
+
+	public record JsonCustomPayload(JsonElement element) implements CustomPayload {
+		public static final PacketCodec<PacketByteBuf, JsonCustomPayload> CODEC = CustomPayload.codecOf(
+				JsonCustomPayload::encode, JsonCustomPayload::new
+		);
+
+		private JsonCustomPayload(PacketByteBuf buf) {
+			this(decode(buf));
+		}
+
+		@Override public Id<? extends CustomPayload> getId() {
+			return ChannelHandler.CHANNEL_ID;
+		}
+
+		public void encode(PacketByteBuf buf) {
+			throw new NotImplementedException("Monumenta Packet encoder not yet implemented.");
+		}
+	}
+
+	//ByteBuf, JsonElement
 }

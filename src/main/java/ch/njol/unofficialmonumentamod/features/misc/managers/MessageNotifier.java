@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
@@ -114,8 +115,9 @@ public class MessageNotifier extends HudElement {
     }
 
     @Override
-    protected void render(DrawContext ctx, float tickDelta) {
+    protected void render(DrawContext ctx, RenderTickCounter tickCounter) {
         Rectangle dimension = getDimension();
+        float tickDelta = tickCounter.getTickDelta(true);
         if (isInEditMode()) {
             renderOutline(ctx, new Rectangle(0, 0, dimension.width, dimension.height));
         }

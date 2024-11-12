@@ -27,7 +27,7 @@ public class ShardData {//TODO clean up this class
 
 	private static final HashMap<String, Shard> SHARDS = new HashMap<>();
 
-	private static final Identifier FILE_IDENTIFIER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/shards.json");
+	private static final Identifier FILE_IDENTIFIER = Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/shards.json");
 
 	protected static boolean editedShard = false;
 

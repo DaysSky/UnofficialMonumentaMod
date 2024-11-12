@@ -22,6 +22,7 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.render.GameRenderer;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.util.math.MatrixStack;
@@ -106,11 +107,12 @@ public class AbilitiesHud extends HudElement {
 	}
 
 	@Override
-	protected void render(DrawContext drawContext, float tickDelta) {
+	protected void render(DrawContext drawContext, RenderTickCounter tickCounter) {
 		if (client.options.hudHidden || client.player == null || client.player.isSpectator()) {
 			return;
 		}
 		Options options = UnofficialMonumentaModClient.options;
+		float tickDelta = tickCounter.getTickDelta(true);
 
 		AbilityHandler abilityHandler = UnofficialMonumentaModClient.abilityHandler;
 		List<AbilityHandler.AbilityInfo> abilityInfos = abilityHandler.abilityData;
@@ -276,13 +278,13 @@ public class AbilitiesHud extends HudElement {
 
 	private Sprite getClassDuration(String className, String part) {
 		String id = className + "/" + className + "_bar_" + part;
-		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 		Sprite sprite = atlas.getSprite(baseIdentifier);
 		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return sprite;
 		}
 
-		Identifier e = abilityIdentifiers.computeIfAbsent("shaman/shaman_bar_" + part, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Identifier e = abilityIdentifiers.computeIfAbsent("shaman/shaman_bar_" + part, key -> Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 		return atlas.getSprite(e);
 	}
 
@@ -291,14 +293,14 @@ public class AbilitiesHud extends HudElement {
 
 		// for abilities with charges, use a special "_max" sprite when charges are full (and the sprite exists)
 		if ((abilityInfo.maxCharges > 1 || abilityInfo.maxCharges == 1 && abilityInfo.initialCooldown <= 0) && abilityInfo.charges == abilityInfo.maxCharges) {
-			Identifier maxIdentifier = abilityIdentifiers.computeIfAbsent(id + "_max", key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+			Identifier maxIdentifier = abilityIdentifiers.computeIfAbsent(id + "_max", key -> Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 			Sprite sprite = atlas.getSprite(maxIdentifier);
 			if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 				return sprite;
 			}
 		}
 
-		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
+		Identifier baseIdentifier = abilityIdentifiers.computeIfAbsent(id, key -> Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER, sanitizeForIdentifier(key)));
 		Sprite sprite = atlas.getSprite(baseIdentifier);
 		if (!sprite.getContents().getId().equals(MissingSprite.getMissingSpriteId())) {
 			return sprite;
@@ -310,7 +312,7 @@ public class AbilitiesHud extends HudElement {
 
 	private static Identifier getBorderFileIdentifier(String className, boolean silenced) {
 		return borderIdentifiers.computeIfAbsent((className == null ? "unknown" : className) + (silenced ? "_silenced" : ""),
-			key -> new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER,
+			key -> Identifier.of(UnofficialMonumentaModClient.MOD_IDENTIFIER,
 				sanitizeForIdentifier(className == null ? "unknown" : className) + "/border" + (silenced ? "_silenced" : "")));
 	}
 

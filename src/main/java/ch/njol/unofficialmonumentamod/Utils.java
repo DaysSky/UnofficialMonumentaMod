@@ -8,15 +8,19 @@ import java.util.List;
 import java.util.TimeZone;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.item.TooltipContext;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.BufferRenderer;
+import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
 import org.joml.Matrix4f;
 
@@ -28,11 +32,14 @@ public abstract class Utils {
 	/**
 	 * Gets the plain display name of an items. This is used by Monumenta to distinguish items.
 	 *
+	 * @apiNote Known to be super janky but as Monumenta is not yet using the components, this is a better way.
+	 *
 	 * @param itemStack An item stack
 	 * @return The plain display name of the item, i.e. the value of NBT node plain.display.Name.
 	 */
 	public static String getPlainDisplayName(ItemStack itemStack) {
-		return itemStack.getNbt() == null ? null : itemStack.getNbt().getCompound("plain").getCompound("display").getString("Name");
+		NbtComponent baseComponent = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+		return baseComponent != null ? baseComponent.copyNbt().getCompound("plain").getCompound("display").getString("Name") : null;
 	}
 
 	public static float smoothStep(float f) {
@@ -68,7 +75,7 @@ public abstract class Utils {
 	}
 
 	public static List<Text> getTooltip(ItemStack stack) {
-		return stack.getTooltip(MinecraftClient.getInstance().player, TooltipContext.BASIC);
+		return stack.getTooltip(Item.TooltipContext.DEFAULT, MinecraftClient.getInstance().player, TooltipType.BASIC);
 	}
 
 	public static void drawFilledPolygon(DrawContext drawContext, int originX, int originY, float radius, int sides, int color) {
@@ -88,17 +95,15 @@ public abstract class Utils {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 
-		BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-
-		bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
-		bufferBuilder.vertex(positionMatrix, originX, originY, 0.0f).color(a, r, g, b).next();
+		BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_FAN, VertexFormats.POSITION_COLOR);
+		bufferBuilder.vertex(positionMatrix, originX, originY, 0.0f).color(a, r, g, b);
 
 		//very optimised (trust)
 		for (int i = 0; i <= (sides * percentage); i++) {
 			double angle = ((Math.PI * 2) * i / sides) + Math.toRadians(180);
-			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * radius), (float) (originY + Math.cos(angle) * radius), 0.0f).color(a, r, g, b).next();
+			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * radius), (float) (originY + Math.cos(angle) * radius), 0.0f).color(a, r, g, b);
 		}
-		BufferBuilder.BuiltBuffer built = bufferBuilder.end();
+		BuiltBuffer built = bufferBuilder.end();
 
 		BufferRenderer.drawWithGlobalProgram(built);
 		RenderSystem.disableBlend();
@@ -116,17 +121,16 @@ public abstract class Utils {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
 
-		BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-		bufferBuilder.begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
+		BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.TRIANGLE_STRIP, VertexFormats.POSITION_COLOR);
 
 		//very optimised (trust)
 		for (int i = 0; i <= (sides * percentage); i++) {
 			double angle = ((Math.PI * 2) * i / sides) + Math.toRadians(180);
-			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * (radius - borderWidth)), (float) (originY + Math.cos(angle) * (radius - borderWidth)), 0.0f).color(a, r, g, b).next();
-			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * radius), (float) (originY + Math.cos(angle) * radius), 0.0f).color(a, r, g, b).next();
+			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * (radius - borderWidth)), (float) (originY + Math.cos(angle) * (radius - borderWidth)), 0.0f).color(a, r, g, b);
+			bufferBuilder.vertex(positionMatrix, (float) (originX + Math.sin(angle) * radius), (float) (originY + Math.cos(angle) * radius), 0.0f).color(a, r, g, b);
 		}
 
-		BufferBuilder.BuiltBuffer built = bufferBuilder.end();
+		BuiltBuffer built = bufferBuilder.end();
 		BufferRenderer.drawWithGlobalProgram(built);
 		RenderSystem.disableBlend();
 	}

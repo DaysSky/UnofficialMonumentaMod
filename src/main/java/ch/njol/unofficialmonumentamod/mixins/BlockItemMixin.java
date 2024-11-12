@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShulkerBoxBlock;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
@@ -25,17 +26,17 @@ public abstract class BlockItemMixin {
 	 * Prevents Firmament (and its skinned version) from being consumed when placed, allowing fast placement regardless of ping.
 	 */
 	@Redirect(method = "place(Lnet/minecraft/item/ItemPlacementContext;)Lnet/minecraft/util/ActionResult;",
-		at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrement(I)V"))
-	public void place_consumeBlock(ItemStack itemStack, int amount) {
-		if (itemStack.isEmpty() || !UnofficialMonumentaModClient.options.firmamentPingFix) {
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrementUnlessCreative(ILnet/minecraft/entity/LivingEntity;)V"))
+	public void place_consumeBlock(ItemStack instance, int amount, LivingEntity entity) {
+		if (instance.isEmpty() || !UnofficialMonumentaModClient.options.firmamentPingFix) {
 			return;
 		}
 		if (getBlock() instanceof ShulkerBoxBlock
-			    && Arrays.asList("Firmament", "Doorway from Eternity").contains(Utils.getPlainDisplayName(itemStack))) {
+			    && Arrays.asList("Firmament", "Doorway from Eternity").contains(Utils.getPlainDisplayName(instance))) {
 			// do nothing, i.e. keep the Firmament
 			return;
 		}
-		itemStack.decrement(amount);
+		instance.decrement(amount);
 	}
 
 	/**

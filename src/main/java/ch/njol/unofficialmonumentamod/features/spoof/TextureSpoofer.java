@@ -18,6 +18,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -84,7 +86,8 @@ public class TextureSpoofer {
 		String key = getKeyOf(stack);
 		if (spoofedItems.containsKey(key)) {
 			SpoofItem item = spoofedItems.get(key);
-			if (stack.hasNbt() && hasBeenEdited(stack)) {
+			NbtComponent baseComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+			if (baseComponent != null && hasBeenEdited(stack)) {
 				return stack;
 			}
 			if (item == null || item.invalid) {
@@ -97,18 +100,23 @@ public class TextureSpoofer {
 			if (!stack.getItem().equals(overrideItem)) {
 				((ItemStackAccessor) (Object) newItemStack).setItem(overrideItem);
 			}
-			
-			if (stack.hasNbt()) {
-				assert newItemStack.getNbt() != null;
+
+			if (baseComponent != null) {
+				NbtComponent newBaseComponent = newItemStack.get(DataComponentTypes.CUSTOM_DATA);
+				assert newBaseComponent != null;
+				NbtCompound newBaseCompound = newBaseComponent.copyNbt();
+
 				if (item.displayName != null) {
-					newItemStack.getNbt().put("plain", setPlain(newItemStack.getNbt(), item.displayName));
+					newBaseCompound.put("plain", setPlain(newBaseCompound, item.displayName));
+					newItemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(newBaseCompound));
 				}
 				
 				if (item.hope != null) {
 					try {
 						//check if it's a valid uuid
 						UUID uuid = UUID.fromString(item.hope);
-						newItemStack.getNbt().put("Monumenta", setHoped(newItemStack.getNbt(), item.hope));
+						newBaseCompound.put("Monumenta", setHoped(newBaseCompound, item.hope));
+						newItemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(newBaseCompound));
 					} catch (IllegalArgumentException e) {
 						UnofficialMonumentaModClient.LOGGER.error("invalid Hope skin uuid, removing entry.", e);
 						SpoofItem newSpoof = spoofedItems.get(key);
@@ -121,7 +129,9 @@ public class TextureSpoofer {
 				//to be able to detect already edited stacks
 				NbtCompound monumentamodCompound = new NbtCompound();
 				monumentamodCompound.put("edited", NbtInt.of(1));
-				newItemStack.getNbt().put("monumenta-mod", monumentamodCompound);
+
+				newBaseCompound.put("monumenta-mod", monumentamodCompound);
+				newItemStack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(newBaseCompound));
 			}
 			
 			return newItemStack;
@@ -146,7 +156,9 @@ public class TextureSpoofer {
 		String key = getKeyOf(stack);
 		if (spoofedItems.containsKey(key)) {
 			SpoofItem item = spoofedItems.get(key);
-			if (stack.hasNbt() && hasBeenEdited(stack)) {
+
+			NbtComponent baseComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+			if (baseComponent != null && hasBeenEdited(stack)) {
 				return;
 			}
 			if (item == null || item.invalid) {
@@ -158,17 +170,20 @@ public class TextureSpoofer {
 				((ItemStackAccessor) (Object) stack).setItem(overrideItem);
 			}
 
-			if (stack.hasNbt()) {
-				assert stack.getNbt() != null;
+			if (baseComponent != null) {
+				NbtCompound baseCompound = baseComponent.copyNbt();
+
 				if (item.displayName != null) {
-					stack.getNbt().put("plain", setPlain(stack.getNbt(), item.displayName));
+					baseCompound.put("plain", setPlain(baseCompound, item.displayName));
+					stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(baseCompound));
 				}
 				
 				if (item.hope != null) {
 					try {
 						//check if it's a valid uuid
 						UUID uuid = UUID.fromString(item.hope);
-						stack.getNbt().put("Monumenta", setHoped(stack.getNbt(), item.hope));
+						baseCompound.put("Monumenta", setHoped(baseCompound, item.hope));
+						stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(baseCompound));
 					} catch (IllegalArgumentException e) {
 						UnofficialMonumentaModClient.LOGGER.error("invalid Hope skin uuid, removing entry.", e);
 						SpoofItem newSpoof = spoofedItems.get(key);
@@ -181,7 +196,9 @@ public class TextureSpoofer {
 				//to be able to detect already edited stacks
 				NbtCompound monumentamodCompound = new NbtCompound();
 				monumentamodCompound.put("edited", NbtInt.of(1));
-				stack.getNbt().put("monumenta-mod", monumentamodCompound);
+
+				baseCompound.put("monumenta-mod", monumentamodCompound);
+				stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(baseCompound));
 			}
 		}
 	}
@@ -234,10 +251,10 @@ public class TextureSpoofer {
 	}
 
 	public static boolean hasBeenEdited(ItemStack stack) {
-		if (stack.hasNbt()) {
-			assert stack.getNbt() != null;
-			if (stack.getNbt().contains("monumenta-mod", 10)) {
-				return stack.getNbt().getCompound("monumenta-mod").getInt("edited") == 1;
+		NbtComponent baseComponent = stack.get(DataComponentTypes.CUSTOM_DATA);
+		if (baseComponent != null) {
+			if (baseComponent.copyNbt().contains("monumenta-mod", 10)) {
+				return baseComponent.copyNbt().getCompound("monumenta-mod").getInt("edited") == 1;
 			}
 		}
 		return false;
@@ -365,7 +382,7 @@ public class TextureSpoofer {
 		}
 
 		public Identifier getItemIdentifier() {
-			return new Identifier(item);
+			return Identifier.of(item);
 		}
 
 		@Override

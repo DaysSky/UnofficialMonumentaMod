@@ -41,6 +41,8 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.Version;
@@ -51,6 +53,7 @@ import net.minecraft.client.item.ModelPredicateProviderRegistry;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -86,7 +89,7 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 
-		ModelPredicateProviderRegistry.register(new Identifier("on_head"),
+		ModelPredicateProviderRegistry.register(Identifier.of("on_head"),
 			(itemStack, clientWorld, livingEntity, seed) -> livingEntity != null && itemStack == livingEntity.getEquippedStack(EquipmentSlot.HEAD) ? 1 : 0);
 
 		try {
@@ -150,7 +153,13 @@ public class UnofficialMonumentaModClient implements ClientModInitializer {
 			effectOverlay.onJoin();
 		});
 
+		//region packet channel registering
+
+		//Register custom packet codecs
+		PayloadTypeRegistry.playS2C().register(ChannelHandler.CHANNEL_ID, ChannelHandler.JsonCustomPayload.CODEC);
+		//register listener on packet channel
 		ClientPlayNetworking.registerGlobalReceiver(ChannelHandler.CHANNEL_ID, new ChannelHandler());
+		//endregion
 
 		KeyBindingHelper.registerKeyBinding(toggleCalculatorKeyBinding);
 		KeyBindingHelper.registerKeyBinding(SlotLocking.LOCK_KEY);
