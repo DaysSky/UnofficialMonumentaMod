@@ -44,9 +44,9 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 	 * If a helmet has a model, do not render it as usual and instead render its model
 	 */
 	@Inject(method = "renderArmor(Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/entity/EquipmentSlot;ILnet/minecraft/client/render/entity/model/BipedEntityModel;)V",
-		at = @At("HEAD"), cancellable = true)
+			at = @At("HEAD"), cancellable = true)
 	public void renderArmor(MatrixStack matrices, VertexConsumerProvider vertexConsumers, T livingEntity, EquipmentSlot equipmentSlot,
-	                        int i, M bipedEntityModel, CallbackInfo ci) {
+							int i, M bipedEntityModel, CallbackInfo ci) {
 		contextSlot = equipmentSlot;
 		if (equipmentSlot != EquipmentSlot.HEAD) {
 			return;
@@ -81,7 +81,7 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 			matrices.translate(0.0D, 0.1875D, 0.0D);
 		}
 		MinecraftClient.getInstance().getItemRenderer().renderItem(itemStack, ModelTransformationMode.HEAD,
-			false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
+				false, matrices, vertexConsumers, i, OverlayTexture.DEFAULT_UV, headModel);
 		matrices.pop();
 	}
 
@@ -89,17 +89,17 @@ public abstract class ArmorFeatureRendererMixin<T extends LivingEntity, M extend
 	private ItemStack editStack(ItemStack value) {
 		//override logic, if override is false and the item is wearable it will remove the original stack else it will carry on.
 		if (UnofficialMonumentaModClient.options.enableTextureSpoofing &&
-			    UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(TextureSpoofer.getKeyOf(value)) &&
-			    !(Registries.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof ArmorItem)) {
+				UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(TextureSpoofer.getKeyOf(value)) &&
+				!(Registries.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof ArmorItem)) {
 			if (UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).override &&
 					((Registries.ITEM.get(UnofficialMonumentaModClient.spoofer.spoofedItems.get(TextureSpoofer.getKeyOf(value)).getItemIdentifier()) instanceof Equipment) ||
-				    (contextSlot == EquipmentSlot.HEAD))) {
+							(contextSlot == EquipmentSlot.HEAD))) {
 				return ItemStack.EMPTY;
 			}
 			//if the item is not an armor item (e.g: iron helmet, diamond leggings, golden boots, etc...) but is also not wearable
 			return value;
 		}
-		
+
 		ItemStack edited = UnofficialMonumentaModClient.spoofer.apply(value);
 		return edited != null ? edited : value;
 	}

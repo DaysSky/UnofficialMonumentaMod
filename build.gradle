@@ -102,9 +102,6 @@ publishing {
             artifact(remapJar) {
                 builtBy remapJar
             }
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
         }
     }
 
@@ -126,7 +123,7 @@ String getReleaseType() {
 
     for (String prefix in new String[]{"pre", "beta", "alpha"}) {
         if (project.mod_extradata.startsWithIgnoreCase(prefix)) {
-            switch(prefix) {
+            switch (prefix) {
                 case "pre":
                 case "beta":
                     return "beta"
