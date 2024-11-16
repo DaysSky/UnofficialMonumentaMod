@@ -95,7 +95,7 @@ public class DiscordPresence {
 	}
 
 	private String getLargeImageText() {
-		return FabricLoader.getInstance().isDevelopmentEnvironment() ? "Unofficial Monumenta Mod - Dev" : "Unofficial Monumenta Mod";
+		return UnofficialMonumentaModClient.ModInfo.inDevEnvironment ? "Unofficial Monumenta Mod - Dev" : "Unofficial Monumenta Mod";
 	}
 
 	private void updatePresence() {
@@ -147,8 +147,17 @@ public class DiscordPresence {
 		}
 	}
 
+	private boolean canPublicizeShards = true;
+	public void setCanPublicizeShards(boolean canPublicizeShards) {
+		this.canPublicizeShards = canPublicizeShards;
+	}
+
+	private boolean canPublicizeShards() {
+		return canPublicizeShards && !UnofficialMonumentaModClient.options.hideShardMode;
+	}
+
 	private String getActiveShard() {
-		if (UnofficialMonumentaModClient.options.hideShardMode) {
+		if (!canPublicizeShards()) {
 			return ShardData.UNKNOWN_SHARD;
 		}
 		String shard = Locations.getShortShard();

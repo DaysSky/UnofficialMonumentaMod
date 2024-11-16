@@ -22,6 +22,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.Resource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 public class Locations {
 	//region utilities
@@ -126,8 +127,28 @@ public class Locations {
 
 	private static final Gson GSON = new GsonBuilder()
 		                                 .setPrettyPrinting()
+										 .excludeFieldsWithoutExposeAnnotation()
 		                                 .create();
 	private static final Identifier FILE_IDENTIFIER = new Identifier(UnofficialMonumentaModClient.MOD_IDENTIFIER, "override/locations.json");
+
+	protected void registerLocation(String shard, String locName, int x1, int z1, int x2, int z2) {
+		if (getLocationByName(shard, locName) != null) {
+			throw new IllegalStateException(shard + "-" + locName + " already exists, if you intended to override it, please use Location#unregisterLocation first.");
+		}
+
+		List<Location> locs = getLocations(shard);
+		locs.add(new Location(x1, z1, x2, z2, locName));
+	}
+
+	protected void unregisterLocation(String shard, String locName) {
+		List<Location> locs = getLocations(shard);
+		for (Location loc: locs) {
+			if (loc.name.equalsIgnoreCase(locName)) {
+				locs.remove(loc);
+				break;
+			}
+		}
+	}
 
 	public void reload() {
 		locations.clear();
@@ -166,12 +187,33 @@ public class Locations {
 		return shard;
 	}
 
+	@Nullable
+	public Location getLocationByName(String shard, String name) {
+		List<Location> locs = getLocations(shard);
+		if (locs == null) {
+			return null;
+		}
+
+		for (Location loc: locs) {
+			if (loc.name.equalsIgnoreCase(name)) {
+				return loc;
+			}
+		}
+
+		return null;
+	}
+
 	public static class Location {
+		@Expose
 		int east;
+		@Expose
 		int north;
+		@Expose
 		int west;
+		@Expose
 		int south;
 
+		@Expose
 		String name;
 
 		public Location(int east, int north, int west, int south, String name) {
