@@ -6,13 +6,17 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
+import java.util.concurrent.CompletableFuture;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -20,6 +24,8 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtInt;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class TextureSpoofer {
 	private static final String CACHE_PATH = "monumenta/texture-spoof.json";
@@ -33,9 +39,27 @@ public class TextureSpoofer {
 	public void onDisconnect() {
 		save();
 	}
-	
+
 	public static String getKeyOf(ItemStack stack) {
-		return stack.getName().getString().toLowerCase();
+		return stack.getName().getString().toLowerCase().strip();
+	}
+
+	public SuggestionProvider<FabricClientCommandSource> spoofedItemsKeyProvider() {
+		return (context, builder) -> {
+			Set<String> keys = spoofedItems.keySet();
+			for (String key: keys) {
+				builder.suggest("\"" + key + "\"");
+			}
+			return builder.buildFuture();
+		};
+	}
+
+	@Nullable
+	public SpoofItem getSpoofItemFromName(@NotNull String name) {
+		if (spoofedItems.containsKey(name)) {
+			return spoofedItems.get(name);
+		}
+		return null;
 	}
 	
 	public Item getSpoofItem(ItemStack stack) {
@@ -219,7 +243,7 @@ public class TextureSpoofer {
 		return false;
 	}
 
-	public static boolean wouldveBeenEdited(ItemStack stack) {
+	public static boolean shouldEdit(ItemStack stack) {
 		String key = getKeyOf(stack);
 		return UnofficialMonumentaModClient.spoofer.spoofedItems.containsKey(key) &&
 				!UnofficialMonumentaModClient.spoofer.spoofedItems.get(key).invalid;
@@ -247,8 +271,10 @@ public class TextureSpoofer {
 
 		if (!file.exists()) {
 			try {
-				file.getParentFile().mkdirs();
-				file.createNewFile();
+				if (!file.getParentFile().mkdirs() || !file.createNewFile()) {
+					UnofficialMonumentaModClient.LOGGER.error("Could not create texture spoofing file");
+					return;
+				}
 			} catch (IOException e) {
 				UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to create files for texture spoofing", e);
 			}
@@ -259,6 +285,66 @@ public class TextureSpoofer {
 		} catch (Exception e) {
 			UnofficialMonumentaModClient.LOGGER.error("Caught error whilst trying to save texture spoofing data", e);
 		}
+	}
+
+	public CompletableFuture<?> runThenSaveFile(Runnable runnable) {
+		return CompletableFuture.runAsync(runnable).thenRunAsync(this::save);
+	}
+
+	public void addSpoof(String key, Item item, String displayName, boolean override) {
+		SpoofItem localSpoofedItem = getSpoofItemFromName(key);
+		if (localSpoofedItem != null) {
+			throw new IllegalArgumentException("key '" + key + "' has an associated spoofed item, could not create new one.");
+		}
+
+		SpoofItem spoofedItem = new SpoofItem(item, displayName);
+		spoofedItem.override = override;
+		spoofedItems.put(key, spoofedItem);
+	}
+
+	public void deleteSpoof(String key) {
+		SpoofItem spoofedItem = getSpoofItemFromName(key);
+		if (spoofedItem == null) {
+			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+		spoofedItems.remove(key);
+	}
+
+	public void editItem(String key, Item item) {
+		SpoofItem spoofedItem = getSpoofItemFromName(key);
+		if (spoofedItem == null) {
+			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+		spoofedItem.item = Registries.ITEM.getId(item).toString();
+	}
+
+	public void editDisplayName(String key, String displayName) {
+		SpoofItem spoofedItem = getSpoofItemFromName(key);
+		if (spoofedItem == null) {
+			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+		spoofedItem.displayName = displayName;
+	}
+
+	public void editAppliedHope(String key, UUID appliedUuid) {
+		SpoofItem spoofedItem = getSpoofItemFromName(key);
+		if (spoofedItem == null) {
+			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+
+		if (appliedUuid == null) {
+			spoofedItem.hope = null;
+			return;
+		}
+		spoofedItem.hope = appliedUuid.toString();
+	}
+
+	public void editOverride(String key, boolean override) {
+		SpoofItem spoofedItem = getSpoofItemFromName(key);
+		if (spoofedItem == null) {
+			throw new IllegalArgumentException("key '" + key + "' does not have an associated spoofed item.");
+		}
+		spoofedItem.override = override;
 	}
 
 	public static class SpoofItem {
