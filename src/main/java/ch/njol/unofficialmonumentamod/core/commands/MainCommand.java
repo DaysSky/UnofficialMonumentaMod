@@ -5,9 +5,11 @@ import ch.njol.unofficialmonumentamod.Utils;
 import ch.njol.unofficialmonumentamod.core.PersistentData;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import java.util.Collection;
+import java.util.Map;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
@@ -16,6 +18,7 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.ClickEvent;
+import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
@@ -34,18 +37,52 @@ public class MainCommand extends Constants {
 
         builder.then(ClientCommandManager.literal("info").executes(ctx -> runSelfInfo()));
         builder.then(ClientCommandManager.literal("info")
-                .then(ClientCommandManager.literal("modlist")
-                        .then(ClientCommandManager.literal("clip").executes(ctx -> runCopyInfo()))
-                        .executes(ctx -> runModList())));
+                        .then(ClientCommandManager.literal("clip")
+                                .executes(ctx -> runCopyInfo())
+                        .then(ClientCommandManager.literal("modlist")
+                                .executes(ctx -> runModList())))
+                );
 
         builder.then(ClientCommandManager.literal("persistence")
                 .then(ClientCommandManager.literal("list").executes(ctx -> runListPersistentData())));
+
+        builder.then(ClientCommandManager.literal("help")
+                .then(ClientCommandManager.argument("commandName", StringArgumentType.string())
+                        .suggests(CommandHelpBuilder.CommandHelpSuggestionProvider())
+                        .executes(MainCommand::runHelpSingular))
+                .executes(MainCommand::runHelp));
 
         return builder;
     }
 
     public String getName() {
         return MainCommand.class.getSimpleName();
+    }
+
+    private static int runHelpSingular(CommandContext<FabricClientCommandSource> ctx) {
+        String commandName = ctx.getArgument("commandName", String.class);
+        if (commandName == null) {
+            ctx.getSource().sendError(Text.of("Could not get command name"));
+            return 1;
+        }
+
+        String tree = CommandHelpBuilder.getTreeOf(commandName);
+
+        ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of(commandName + ":\n    " + tree)).fillStyle(Constants.MAIN_INFO_STYLE));
+        return 0;
+    }
+
+    private static int runHelp(CommandContext<FabricClientCommandSource> ctx) {
+        Map<String, String> commandTrees = CommandHelpBuilder.getCommandTrees();
+
+        StringBuilder builder = new StringBuilder();
+        for (Map.Entry<String, String> entry: commandTrees.entrySet()) {
+            builder.append(entry.getKey()).append(":\n    ").append(entry.getValue())
+                    .append('\n');
+        }
+
+        ctx.getSource().sendFeedback(MutableText.of(PlainTextContent.of(builder.toString())).fillStyle(MAIN_INFO_STYLE));
+        return 0;
     }
 
     private static int runListPersistentData() {
@@ -109,32 +146,34 @@ public class MainCommand extends Constants {
     }
 
     private static String getSelfInfoString() {
-        StringBuilder data = new StringBuilder();
-        data.append("[Mod Info]");
-
         String name = UnofficialMonumentaModClient.ModInfo.name;
-        data.append("\nName: ").append(name);
-        data.append("\nVersion: ").append(UnofficialMonumentaModClient.ModInfo.getVersion());
-        data.append("\nFile name: ").append(UnofficialMonumentaModClient.ModInfo.fileName);
-
-        data.append("\nMinecraft: ").append(MinecraftClient.getInstance().getGameVersion()).append("-").append(SharedConstants.getGameVersion().getName());
-        data.append("\nIn Development environment: ").append(FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No");
-        return data.append("\n").toString();
+        return "Mod Info" +
+                "\n------------" +
+                "\nName: " + name +
+                "\nVersion: " + UnofficialMonumentaModClient.ModInfo.getVersion() +
+                "\nFile name: " + UnofficialMonumentaModClient.ModInfo.fileName +
+                "\nMinecraft: " + MinecraftClient.getInstance().getGameVersion() + "-" + SharedConstants.getGameVersion().getName() +
+                "\nIn Development environment: " + (FabricLoader.getInstance().isDevelopmentEnvironment() ? "Yes" : "No") +
+                "\n";
     }
 
     private static String getModListString() {
         Collection<ModContainer> mods = FabricLoader.getInstance().getAllMods();
         StringBuilder data = new StringBuilder();
 
-        data.append("[Mod List]");
+        data.append("Mod List").append("\n------------");
         for (ModContainer mod: mods) {
             ModMetadata metadata = mod.getMetadata();
             if (metadata.getId().startsWith("fabric-") || metadata.getId().equals("minecraft") || metadata.getId().equals("java")) {
                 continue;//Skip fabric apis, Minecraft and Java.
             }
-            data.append("\n").append(metadata.getName()).append(" (").append(metadata.getId()).append(") ").append(metadata.getVersion().getFriendlyString());
+            data.append("\n")
+                            .append("[").append(metadata.getName()).append("]")
+                            .append("[").append(metadata.getId()).append("]")
+                            .append("[").append(metadata.getVersion().getFriendlyString()).append("]");
+
             if (mod.getContainingMod().isPresent()) {
-                data.append(" via ").append(mod.getContainingMod().get().getMetadata().getId());
+                data.append(" <").append(mod.getContainingMod().get().getMetadata().getId()).append(">");
             }
         }
 
@@ -142,7 +181,13 @@ public class MainCommand extends Constants {
     }
 
     private static int runCopyInfo() {
-        MinecraftClient.getInstance().keyboard.setClipboard(getSelfInfoString().concat(getModListString()));
+        MinecraftClient.getInstance().keyboard.setClipboard(
+                "```md\n"
+                        .concat(getSelfInfoString())
+                        .concat("\n")
+                        .concat(getModListString())
+                        .concat("\n```")
+        );
         MutableText text = Text.literal("Copied info to clipboard").setStyle(SUB_INFO_STYLE);
 
         MinecraftClient.getInstance().inGameHud.getChatHud().addMessage(text);

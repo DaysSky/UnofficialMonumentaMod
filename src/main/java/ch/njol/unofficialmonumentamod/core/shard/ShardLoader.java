@@ -1,5 +1,6 @@
 package ch.njol.unofficialmonumentamod.core.shard;
 
+import ch.njol.unofficialmonumentamod.ChannelHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData.ShardChangedEventCallback;
 import ch.njol.unofficialmonumentamod.core.shard.ShardData.TabShard;
@@ -12,6 +13,7 @@ import net.minecraft.world.World;
 
 import static ch.njol.unofficialmonumentamod.core.shard.ShardData.ShardChangedEventCallback;
 import static ch.njol.unofficialmonumentamod.core.shard.ShardData.TabShard;
+import static ch.njol.unofficialmonumentamod.core.shard.ShardData.getShard;
 
 public class ShardLoader {
     public static final String UNKNOWN_SHARD = "unknown";
@@ -20,6 +22,7 @@ public class ShardLoader {
     private static TabShard lastLoadedShard = TabShard.UNKNOWN;
 
     private static boolean worldSpoofEnabled = false;
+    private static boolean receivingLocationPackets = false;
 
     public static TabShard getCurrentShard() {
         return currentShard;
@@ -31,6 +34,10 @@ public class ShardLoader {
 
     public static boolean isWorldSpoofingEnabled() {
         return worldSpoofEnabled;
+    }
+
+    public static boolean receivesLocationPackets() {
+        return receivingLocationPackets;
     }
 
     private static final String WORLD_SPOOF_MESSAGE_START = "World name spoofing is now ";
@@ -56,13 +63,35 @@ public class ShardLoader {
 
     public static void onManualShardSet(String shardName) {
         debug("Manually set shard to: " + shardName);
-        loadShardFromTabHeader(shardName);
+        TabShard shard = shardName.equalsIgnoreCase(UNKNOWN_SHARD) ? TabShard.UNKNOWN : new TabShard(shardName);
+        checkAndDispatchEvent(shard);
     }
 
     public static void onDisconnect() {
         //world spoofing could be enabled or disabled between this and next login for all we know, so we set it as uncertain
-        debug("Disconnecting, un-setting world spoofing status");
+        debug("Disconnecting, un-setting non-persistent values");
         worldSpoofEnabled = false;
+        receivingLocationPackets = false;
+    }
+
+    public static void onLocationUpdatedPacket(ChannelHandler.LocationUpdatedPacket packet) {
+        receivingLocationPackets = true;
+        String content = packet.getContent();
+        String shard = packet.getShard();
+
+        TabShard sherd = TabShard.UNKNOWN;
+        if (!content.equalsIgnoreCase(shard)) {
+            //get from content
+            if (getShard(content) != null) {
+                sherd = new TabShard(content);
+            }
+        }
+
+        if (sherd == TabShard.UNKNOWN) {
+            sherd = new TabShard(shard);
+        }
+
+        checkAndDispatchEvent(sherd);
     }
 
     public static void onWorldLoaded() {
@@ -75,17 +104,23 @@ public class ShardLoader {
     public static void loadShardFromTabHeader(String shardString) {
         TabShard shard = shardString.equalsIgnoreCase(UNKNOWN_SHARD) ? TabShard.UNKNOWN : new TabShard(shardString);
 
-        if (worldSpoofEnabled) {
-            debug("Skipping tab header " + shardString + " since world spoofing is enabled.");
+        if (worldSpoofEnabled || receivingLocationPackets) {
+            debug("Skipping tab header " + shardString + ", receiving location from packets (world spoof or locationUpdatedPacket).");
             return;
         }
-        debug("Received new tab header: " + shardString);
+        debug("Received tab header update: " + shardString);
         checkAndDispatchEvent(shard);
     }
 
     public static void loadWorldFromDimensionKey(RegistryKey<World> dimKey) {
         String extractedShard = extractWorldFromDimKey(dimKey);
         debug("Received new world key: " + extractedShard);
+
+        if (receivingLocationPackets) {
+            debug("Skipping world spoof key " + extractedShard + ", receiving location from location updated packet.");
+            return;
+        }
+
         if (extractedShard.equalsIgnoreCase(UNKNOWN_SHARD)) {
             return;
         }
@@ -116,7 +151,7 @@ public class ShardLoader {
 
     private static void debug(String message) {
         if (UnofficialMonumentaModClient.options.shardDebug) {
-            UnofficialMonumentaModClient.LOGGER.info("[Shard Loading] " + message);
+            UnofficialMonumentaModClient.debug("[Shard Loading] " + message);
         }
     }
 }

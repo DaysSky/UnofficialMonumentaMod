@@ -3,8 +3,8 @@ package ch.njol.unofficialmonumentamod.mixins;
 import ch.njol.unofficialmonumentamod.AbilityHandler;
 import ch.njol.unofficialmonumentamod.UnofficialMonumentaModClient;
 import ch.njol.unofficialmonumentamod.features.misc.managers.MessageNotifier;
-import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
+import ch.njol.unofficialmonumentamod.hud.AbilitiesHud;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.text.Text;
@@ -28,7 +28,7 @@ public class InGameHudMixin {
 	}
 
 	@Inject(method = "render",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusEffectOverlay(Lnet/minecraft/client/gui/DrawContext;)V", shift = At.Shift.BEFORE))
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/InGameHud;renderStatusEffectOverlay(Lnet/minecraft/client/gui/DrawContext;)V", shift = At.Shift.BEFORE))
 	void renderSkills_beforeStatusEffects(DrawContext drawContext, float tickDelta, CallbackInfo ci) {
 		if (!abilitiesHud.renderInFrontOfChat()) {
 			UnofficialMonumentaModClient.effectOverlay.renderAbsolute(drawContext, tickDelta);
@@ -39,8 +39,8 @@ public class InGameHudMixin {
 	}
 
 	@Inject(method = "render",
-			at = @At(value = "INVOKE", target = "Lnet/minecraft/scoreboard/Scoreboard;getObjectiveForSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;)Lnet/minecraft/scoreboard/ScoreboardObjective;", shift = At.Shift.BEFORE),
-			slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/DrawContext;III)V")))
+		at = @At(value = "INVOKE", target = "Lnet/minecraft/scoreboard/Scoreboard;getObjectiveForSlot(Lnet/minecraft/scoreboard/ScoreboardDisplaySlot;)Lnet/minecraft/scoreboard/ScoreboardObjective;", shift = At.Shift.BEFORE),
+		slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/ChatHud;render(Lnet/minecraft/client/gui/DrawContext;III)V")))
 	void renderSkills_afterChat(DrawContext drawContext, float tickDelta, CallbackInfo ci) {
 		if (abilitiesHud.renderInFrontOfChat()) {
 			UnofficialMonumentaModClient.effectOverlay.renderAbsolute(drawContext, tickDelta);
@@ -62,25 +62,25 @@ public class InGameHudMixin {
 		}
 		synchronized (UnofficialMonumentaModClient.abilityHandler) {
 			if (!UnofficialMonumentaModClient.options.abilitiesDisplay_hideAbilityRelatedMessages
-					|| !UnofficialMonumentaModClient.options.abilitiesDisplay_enabled
-					|| UnofficialMonumentaModClient.abilityHandler.abilityData.isEmpty()) {
+				    || !UnofficialMonumentaModClient.options.abilitiesDisplay_enabled
+				    || UnofficialMonumentaModClient.abilityHandler.abilityData.isEmpty()) {
 				return;
 			}
 			String m = message.getString();
 			if (StringUtils.startsWithIgnoreCase(m, "You are silenced")
-					|| StringUtils.startsWithIgnoreCase(m, "All your cooldowns have been reset")
-					|| StringUtils.startsWithIgnoreCase(m, "Cloak stacks:")
-					|| StringUtils.startsWithIgnoreCase(m, "Rage:")
-					|| StringUtils.startsWithIgnoreCase(m, "Holy energy radiates from your hands")
-					|| StringUtils.startsWithIgnoreCase(m, "The light from your hands fades")) {
+				    || StringUtils.startsWithIgnoreCase(m, "All your cooldowns have been reset")
+				    || StringUtils.startsWithIgnoreCase(m, "Cloak stacks:")
+				    || StringUtils.startsWithIgnoreCase(m, "Rage:")
+				    || StringUtils.startsWithIgnoreCase(m, "Holy energy radiates from your hands")
+				    || StringUtils.startsWithIgnoreCase(m, "The light from your hands fades")) {
 				ci.cancel();
 				return;
 			}
 			for (AbilityHandler.AbilityInfo abilityInfo : UnofficialMonumentaModClient.abilityHandler.abilityData) {
 				if (StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " is now off cooldown")
-						|| StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " has been activated")
-						|| StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " stacks")
-						|| StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " charges")) {
+					    || StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " has been activated")
+					    || StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " stacks")
+					    || StringUtils.startsWithIgnoreCase(m, abilityInfo.name + " charges")) {
 					ci.cancel();
 					return;
 				}

@@ -203,13 +203,14 @@ public class Options implements ch.njol.minecraft.config.Options {
 	public boolean chestCount_enabled = true;
 	@Category("chestCountOverlay")
 	public ElementPosition chestCount_position = new ElementPosition(1f, 0, 0.0f, 0, 1f, 0);
+	@Category("chestCountOverlay")
+	public boolean chestCount_disablePacketMaxOverride = false;
 
 	@Category("debug")
 	public boolean debugOptionsEnabled = false;
 	@Category("debug")
 	public boolean logPackets = false;
-	@Category("debug")
-	public boolean shardDebug = false;
+
 	@Category("debug")
 	public boolean enableChestCountMaxError = true;
 
@@ -219,6 +220,14 @@ public class Options implements ch.njol.minecraft.config.Options {
 	@Dropdown("lock")
 	@Category("debug")
 	public boolean lock_renderDebuggingAdvancedLock = false;
+
+	@Dropdown("info")
+	@Category("debug")
+	public boolean shardDebug = false;
+
+	@Dropdown("info")
+	@Category("debug")
+	public boolean notifyDebugMessages = false;
 
 	public void onUpdate() {
 		if (abilitiesDisplay_preset != AbilityOptionPreset.CUSTOM) {

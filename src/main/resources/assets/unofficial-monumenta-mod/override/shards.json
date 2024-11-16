@@ -212,7 +212,7 @@
   "ruin": {
     "officialName": "Masquerader's Ruin",
     "shardType": "STRIKE",
-    "maxChests": 100
+    "maxChests": 118
   },
   "gallery": {
     "officialName": "The Gallery of Fear",
@@ -223,5 +223,10 @@
     "officialName": "Celestial Zenith",
     "shardType": "STRIKE",
     "maxChests": null
+  },
+  "hexfall": {
+    "officialName": "Hexfall",
+    "shardType": "STRIKE",
+    "maxChests": 99
   }
 }

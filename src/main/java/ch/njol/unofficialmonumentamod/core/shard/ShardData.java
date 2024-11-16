@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.client.MinecraftClient;
@@ -20,6 +19,7 @@ import net.minecraft.resource.Resource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class ShardData {//TODO clean up this class
 	public static final String UNKNOWN_SHARD = "unknown";

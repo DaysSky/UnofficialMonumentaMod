@@ -1,5 +1,6 @@
 package ch.njol.unofficialmonumentamod;
 
+import ch.njol.unofficialmonumentamod.core.shard.ShardLoader;
 import ch.njol.unofficialmonumentamod.hud.strike.ChestCountOverlay;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -125,6 +126,51 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 
 	}
 
+	/**
+	 * sent on login, gives information that the client should know first and foremost.
+	 */
+	@SuppressWarnings("unused")
+	public static class ServerInfoPacket {
+		String _type = "ServerInfoPacket";
+
+		/**
+		 * tells the clientside mod whether it is allowed to release information on the location of the player.
+		 * example: beta testing of new content. Should be enabled on stage and volt.
+		 */
+		public boolean allowPublicizeContent;
+	}
+
+	/**
+	 * Should be sent on login, shard change and after a player enters a new content (most likely will be tied to the instance bot)
+	 */
+	@SuppressWarnings("unused")
+	public static class LocationUpdatedPacket {
+		String _type = "LocationUpdatedPacket";
+
+		/**
+		 * the Shard the player is on.
+		 */
+		String shard;
+
+		/**
+		 * the content the player is playing, content can be the same as shard if the shard has the same name.
+		 * on player plots, this will reflect the current instance.
+		 */
+		@Nullable
+		String content;
+
+		public String getShard() {
+			return shard;
+		}
+
+		public String getContent() {
+			if (content == null) {
+				return shard;
+			}
+			return content;
+		}
+	}
+
 	@Override
 	public void receive(MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) {
 		String message = buf.readCharSequence(buf.readableBytes(), StandardCharsets.UTF_8).toString();
@@ -159,6 +205,14 @@ public class ChannelHandler implements ClientPlayNetworking.PlayChannelHandler {
 				case "EffectUpdatePacket" -> {
 					EffectUpdatePacket packet = gson.fromJson(json, EffectUpdatePacket.class);
 					UnofficialMonumentaModClient.effectOverlay.onEffectUpdatePacket(packet);
+				}
+				case "ServerInfoPacket" -> {
+					ServerInfoPacket packet = gson.fromJson(json, ServerInfoPacket.class);
+					UnofficialMonumentaModClient.discordRPC.setCanPublicizeShards(packet.allowPublicizeContent);
+				}
+				case "LocationUpdatedPacket" -> {
+					LocationUpdatedPacket packet = gson.fromJson(json, LocationUpdatedPacket.class);
+					ShardLoader.onLocationUpdatedPacket(packet);
 				}
 			}
 		});
