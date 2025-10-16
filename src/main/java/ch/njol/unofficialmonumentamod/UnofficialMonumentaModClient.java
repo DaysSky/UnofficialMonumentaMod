@@ -11,7 +11,6 @@ import ch.njol.unofficialmonumentamod.core.shard.ShardDebugCommand;
 import ch.njol.unofficialmonumentamod.core.shard.ShardLoader;
 import ch.njol.unofficialmonumentamod.features.calculator.Calculator;
 import ch.njol.unofficialmonumentamod.features.discordrpc.DiscordPresence;
-import ch.njol.unofficialmonumentamod.features.effects.Effect;
 import ch.njol.unofficialmonumentamod.features.effects.EffectOverlay;
 import ch.njol.unofficialmonumentamod.features.locations.Locations;
 import ch.njol.unofficialmonumentamod.features.misc.DelveBounty;
